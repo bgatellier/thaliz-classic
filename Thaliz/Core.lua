@@ -115,6 +115,9 @@ local Thaliz_OPTION_RezButtonPosY						= "RezButtonPosY";
 
 local Thaliz_DebugFunction = nil;
 
+local currentObjectId;	-- A small hack: the object ID is lost when using own frame
+local msgEditorIsOpen;
+
 -- Persisted information:
 Thaliz_Options = { }
 
@@ -154,7 +157,98 @@ local Thaliz_DefaultResurrectionMessages = {
 local function Thaliz_GetOptions()
 	return  {
 		type = "group",
+		childGroups = "tab",
 		args = {
+			addonInfo = {
+				type = "description",
+				name = string.format("Thaliz version %s\nby %s.", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")),
+				order = -1,
+			},
+			resurrectionAnnouncements = {
+				name = "Resurrection announcement",
+				type = "group",
+				order = 1,
+				args = {
+					enabled = {
+						name = "Enabled",
+						type = "toggle",
+						width = "full",
+						set = function (info, value) Thaliz_Enabled = not Thaliz_Enabled end,
+						get = function (value) return Thaliz_Enabled end,
+					},
+					channel = {
+						name = "Target channel",
+						desc = "Channel where the announcements will be send",
+						type = "select",
+						values = { NONE = "None", RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
+						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
+						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
+					},
+				},
+			},
+			targetWhisper = {
+				name = "Target whisper",
+				type = "group",
+				order = 2,
+				args = {
+					targetWhisperEnabled = {
+						name = "Enabled",
+						type = "toggle",
+						width = "full",
+						set = function (info, value)
+							if value then
+								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 1)
+							else
+								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 0)
+							end
+						end,
+						get = function (value)
+							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper)
+
+							if characterBasedSettingsValue == 1 then
+								return true
+							else
+								return false
+							end
+						end,
+					},
+					targetWhisperMessage = {
+						name = "Message",
+						type = "input",
+						width = "full",
+						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, value) end,
+						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) end,
+					},
+				},
+			},
+			profile = {
+				name = "Profile",
+				type = "group",
+				order = 3,
+				args = {
+					macro = {
+						name = "Store macro's per Character",
+						type = "toggle",
+						width = "full",
+						set = function (info, value)
+							if value then
+								Thaliz_SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Character")
+							else
+								Thaliz_SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Realm")
+							end
+						end,
+						get = function (value)
+							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings)
+
+							if characterBasedSettingsValue == "Character" then
+								return true
+							else
+								return false
+							end
+						end,
+					},
+				},
+			},
 			config = {
 				name = "Configuration",
 				desc = "Show/Hide configuration options",
@@ -162,14 +256,6 @@ local function Thaliz_GetOptions()
 				guiHidden = true,
 				set = Thaliz_ToggleConfigurationDialogue,
 				get = function (value) return ThalizConfigDialogOpen end,
-			},
-			channel = {
-				name = "Target channel",
-				desc = "Channel where the announcements will be send",
-				type = "select",
-				values = { NONE = "None", RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
-				set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
-				get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
 			},
 			debug = {
 				name = "Debug",
@@ -189,21 +275,6 @@ local function Thaliz_GetOptions()
 					end
 				end,
 			},
-			enabled = {
-				name = "Resurrection announcements",
-				desc = "Enable/Disable resurrection announcements",
-				type = "toggle",
-				set = function(info, value)
-					Thaliz_Enabled = not Thaliz_Enabled
-
-					if Thaliz_Enabled then
-						Thaliz_Echo("Resurrection announcements has been enabled.")
-					else
-						Thaliz_Echo("Resurrection announcements has been disabled.")
-					end
-				end,
-				get = function (value) return Thaliz_Enabled end,
-			},
 			version = {
 				name = "Version",
 				desc = "Displays Thaliz version",
@@ -213,16 +284,39 @@ local function Thaliz_GetOptions()
 					if IsInRaid() or Thaliz_IsInParty() then
 						Thaliz_SendAddonMessage("TX_VERSION##")
 					else
-						Thaliz_Echo(string.format("%s is using Thaliz version %s", UnitName("player"), GetAddOnMetadata("Thaliz", "Version")))
+						Thaliz_Echo(string.format("Thaliz version %s by %s.", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 					end
 				end
-			}
+			},
 		}
 	}
 end
 
 
 function Thaliz:OnInitialize()
+	msgEditorIsOpen = false;
+	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") )
+
+	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
+	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
+
+    ThalizEventFrame:RegisterEvent("CHAT_MSG_ADDON")
+    ThalizEventFrame:RegisterEvent("RAID_ROSTER_UPDATE")
+    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_START")
+    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_STOP")
+    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_SENT")
+	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED")
+	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+
+	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX);
+
+	Thaliz_InitClassSpecificStuff();
+    Thaliz_InitializeListElements();
+
+	Thaliz_RepositionateButton(RezButton);
+
+	Thaliz_InitializeConfigSettings()
+
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("Thaliz", Thaliz_GetOptions(), { "thaliz" })
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Thaliz")
 end
@@ -450,8 +544,6 @@ function Thaliz_InitializeListElements()
 	end
 end
 
-local currentObjectId;	-- A small hack: the object ID is lost when using own frame
-local msgEditorIsOpen;
 function Thaliz_OnMessageClick(object)
 	Thaliz_CloseMsgEditorButton_OnClick();
 
@@ -1693,12 +1785,7 @@ local SpellcastIsStarted = 0;
 function Thaliz_OnEvent(self, event, ...)
 	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_OnEvent");
 
-	if (event == "ADDON_LOADED") then
-		local addonname = ...;
-		if addonname == "Thaliz" then
-		    Thaliz_InitializeConfigSettings();
-		end
-	elseif (event == "UNIT_SPELLCAST_SENT") then
+	if (event == "UNIT_SPELLCAST_SENT") then
 		local resser, target, _, spellId = ...;
 		if(resser == "player") then
 			if (target ~= "Unknown") then
@@ -1800,29 +1887,29 @@ function Thaliz_OnEvent(self, event, ...)
 	end
 end
 
-function Thaliz_OnLoad()
-	msgEditorIsOpen = false;
-	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") );
+-- function Thaliz_OnLoad()
+-- 	msgEditorIsOpen = false;
+-- 	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") );
 
-	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
+-- 	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
 
-	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
-    ThalizEventFrame:RegisterEvent("ADDON_LOADED");
-    ThalizEventFrame:RegisterEvent("CHAT_MSG_ADDON");
-    ThalizEventFrame:RegisterEvent("RAID_ROSTER_UPDATE");
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_START");
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_STOP");
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_SENT");
-	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED");
-	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+-- 	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
+--     ThalizEventFrame:RegisterEvent("ADDON_LOADED");
+--     ThalizEventFrame:RegisterEvent("CHAT_MSG_ADDON");
+--     ThalizEventFrame:RegisterEvent("RAID_ROSTER_UPDATE");
+--     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_START");
+--     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_STOP");
+--     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_SENT");
+-- 	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED");
+-- 	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 
-	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX);
+-- 	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX);
 
-	Thaliz_InitClassSpecificStuff();
-    Thaliz_InitializeListElements();
+-- 	Thaliz_InitClassSpecificStuff();
+--     Thaliz_InitializeListElements();
 
-	Thaliz_RepositionateButton(RezButton);
-end
+-- 	Thaliz_RepositionateButton(RezButton);
+-- end
 
 function Thaliz_RepositionateButton(self)
 	local x, y = self:GetLeft(), self:GetTop() - UIParent:GetHeight();
