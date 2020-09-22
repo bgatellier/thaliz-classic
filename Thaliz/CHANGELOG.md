@@ -4,6 +4,7 @@
 * The configuration panel and the CLI has been reworked:
   * Every configuration setting can be set either by the configuration panel or the CLI
   * The configuration panel is now available in the dedicated _Addons_ tab from the Blizzard _Interface_ menu (or by using the `/thaliz config` command)
+  * UI settings are now grouped in different tabs according to their objectives
   * The `/thaliz` command is now the only one available (`/thalizversion` and others concatenated commands have been removed).
   * The `/thaliz debug` command is now hidden from the UI and the CLI help, as it should be used by advanced users only
 
