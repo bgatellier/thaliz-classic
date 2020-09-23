@@ -168,6 +168,7 @@ local function Thaliz_GetOptions()
 				name = "Resurrection messages",
 				type = "group",
 				order = 1,
+				cmdHidden = true,
 				args = {
 					enabled = {
 						name = "Enabled",
@@ -220,6 +221,7 @@ local function Thaliz_GetOptions()
 				name = "Target whisper",
 				type = "group",
 				order = 2,
+				cmdHidden = true,
 				args = {
 					targetWhisperEnabled = {
 						name = "Enabled",
@@ -257,6 +259,7 @@ local function Thaliz_GetOptions()
 				name = "Profile",
 				type = "group",
 				order = 3,
+				cmdHidden = true,
 				args = {
 					macro = {
 						name = "Store message's per Character",
