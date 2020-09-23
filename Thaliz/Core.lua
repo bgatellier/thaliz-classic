@@ -155,7 +155,7 @@ local Thaliz_DefaultResurrectionMessages = {
 }
 
 local function Thaliz_GetOptions()
-	return  {
+	local options =  {
 		type = "group",
 		childGroups = "tab",
 		args = {
@@ -164,26 +164,56 @@ local function Thaliz_GetOptions()
 				name = string.format("Thaliz version %s\nby %s.", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")),
 				order = -1,
 			},
-			resurrectionAnnouncements = {
-				name = "Resurrection announcement",
+			resurrectionMessages = {
+				name = "Resurrection messages",
 				type = "group",
 				order = 1,
 				args = {
 					enabled = {
 						name = "Enabled",
 						type = "toggle",
+						order = 1,
 						width = "full",
 						set = function (info, value) Thaliz_Enabled = not Thaliz_Enabled end,
 						get = function (value) return Thaliz_Enabled end,
 					},
 					channel = {
 						name = "Target channel",
-						desc = "Channel where the announcements will be send",
+						desc = "Channel where the  messages will be send",
 						type = "select",
 						values = { NONE = "None", RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
+						order = 2,
 						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
 					},
+					messages = {
+						name = "Messages",
+						type = "group",
+						order = 3,
+						args = {},
+					},
+					includeDefaults = {
+						name = "Include Defaults in filtered messages",
+						type = "toggle",
+						order = 4,
+						width = "full",
+						set = function (info, value)
+							if value then
+								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1)
+							else
+								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0)
+							end
+						end,
+						get = function (value)
+							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup)
+
+							if characterBasedSettingsValue == 1 then
+								return true
+							else
+								return false
+							end
+						end,
+					}
 				},
 			},
 			targetWhisper = {
@@ -194,6 +224,7 @@ local function Thaliz_GetOptions()
 					targetWhisperEnabled = {
 						name = "Enabled",
 						type = "toggle",
+						order = 1,
 						width = "full",
 						set = function (info, value)
 							if value then
@@ -215,6 +246,7 @@ local function Thaliz_GetOptions()
 					targetWhisperMessage = {
 						name = "Message",
 						type = "input",
+						order = 2,
 						width = "full",
 						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, value) end,
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) end,
@@ -227,8 +259,9 @@ local function Thaliz_GetOptions()
 				order = 3,
 				args = {
 					macro = {
-						name = "Store macro's per Character",
+						name = "Store message's per Character",
 						type = "toggle",
+						order = 1,
 						width = "full",
 						set = function (info, value)
 							if value then
@@ -289,6 +322,56 @@ local function Thaliz_GetOptions()
 				end
 			},
 		}
+	}
+
+	-- Populate the resurrection messages box
+	local messages = Thaliz_GetResurrectionMessages()
+	for k, message in ipairs(messages) do
+		options.args.resurrectionMessages.args.messages.args["message" .. k] = Thaliz:createMessageGroupOption(k, message)
+	end
+
+	Thaliz:Print(table.getn(options.args.resurrectionMessages.args.messages.args))
+
+	return options
+end
+
+function Thaliz:createMessageGroupOption(index, message)
+	return {
+		name = message[1],
+		type = "group",
+		order = index,
+		args = {
+			message = {
+				name = "Message",
+				type = "input",
+				order = 1,
+				width = "full",
+				set = function (info, value) Thaliz_SetResurrectionMessage(1, 1, value) end,
+				get = function (value) return Thaliz_GetResurrectionMessage(1)[1] end,
+			},
+			matchingType = {
+				name = "Matching type",
+				type = "select",
+				order = 2,
+				values = {
+					[EMOTE_GROUP_DEFAULT] = EMOTE_GROUP_DEFAULT,
+					[EMOTE_GROUP_GUILD] = EMOTE_GROUP_GUILD,
+					[EMOTE_GROUP_CHARACTER] = EMOTE_GROUP_CHARACTER,
+					[EMOTE_GROUP_CLASS] = EMOTE_GROUP_CLASS,
+					[EMOTE_GROUP_RACE] = EMOTE_GROUP_RACE,
+				},
+				set = function (info, value) Thaliz_SetResurrectionMessage(1, 2, value) end,
+				get = function (value) return Thaliz_GetResurrectionMessage(1)[2] end,
+			},
+			matchingRule = {
+				name = "Matching rule",
+				type = "input",
+				order = 3,
+				width = "full",
+				set = function (info, value) Thaliz_SetResurrectionMessage(1, 3, value) end,
+				get = function (value) return Thaliz_GetResurrectionMessage(1)[3] end,
+			},
+		},
 	}
 end
 
@@ -1061,6 +1144,12 @@ function Thaliz_GetResurrectionMessages()
 	return messages;
 end
 
+function Thaliz_GetResurrectionMessage(index)
+	local messages = Thaliz_GetResurrectionMessages()
+
+	return messages[index]
+end
+
 function Thaliz_RenumberTable(sourcetable)
 	local index = 1;
 	local temptable = { };
@@ -1074,6 +1163,14 @@ end
 
 function Thaliz_SetResurrectionMessages(resurrectionMessages)
 	Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessages, Thaliz_RenumberTable(resurrectionMessages));
+end
+
+function Thaliz_SetResurrectionMessage(messageIndex, propertyIndex, value)
+	local messages = Thaliz_GetResurrectionMessages()
+
+	messages[messageIndex][propertyIndex] = value
+
+	Thaliz_SetResurrectionMessages(messages)
 end
 
 function Thaliz_ResetResurrectionMessages()
