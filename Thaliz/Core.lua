@@ -333,8 +333,6 @@ local function Thaliz_GetOptions()
 		options.args.resurrectionMessages.args.messages.args["message" .. k] = Thaliz:createMessageGroupOption(k, message)
 	end
 
-	Thaliz:Print(table.getn(options.args.resurrectionMessages.args.messages.args))
-
 	return options
 end
 
