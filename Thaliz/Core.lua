@@ -188,10 +188,28 @@ local function Thaliz_GetOptions()
 						order = 3,
 						args = {},
 					},
+					addMessage = {
+						name = "Add a new message",
+						usage = "Once your message has been added, you can change its group and group value.",
+						type = "input",
+						order = 4,
+						width = "full",
+						set = function (info, value)
+							local messageQty = table.getn(Thaliz_GetResurrectionMessages())
+
+							local index = messageQty + 1
+
+							Thaliz_UpdateResurrectionMessage(index, 0, value)
+
+							local message = Thaliz_GetResurrectionMessage(index)
+
+							info.options.args.resurrectionMessages.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
+						end,
+					},
 					includeDefaults = {
 						name = "Include Defaults in filtered messages",
 						type = "toggle",
-						order = 4,
+						order = -1,
 						width = "full",
 						set = function (info, value)
 							if value then
@@ -347,8 +365,10 @@ local function Thaliz_GetOptions()
 
 	-- Populate the resurrection messages box
 	local messages = Thaliz_GetResurrectionMessages()
-	for k, message in ipairs(messages) do
-		options.args.resurrectionMessages.args.messages.args["message" .. k] = Thaliz:createMessageGroupOption(k, message)
+	for index, message in ipairs(messages) do
+		local messageGroupOption = Thaliz:createMessageGroupOption(index, message)
+
+		options.args.resurrectionMessages.args.messages.args["message" .. index] = messageGroupOption
 	end
 
 	return options
@@ -390,13 +410,24 @@ function Thaliz:createMessageGroupOption(index, message)
 				set = function (info, value) Thaliz_SetResurrectionMessage(index, 3, value) end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[3] end,
 			},
+			delete = {
+				name = "Delete this message",
+				type = "execute",
+				func = function (info)
+					-- Remove from the memory
+					Thaliz_DeleteResurrectionMessage(index)
+
+					-- Remove from the options
+					info.options.args.resurrectionMessages.args.messages.args["message" .. index] = nil
+				end,
+			}
 		},
 	}
 end
 
 
 function Thaliz:OnInitialize()
-	msgEditorIsOpen = false;
+	msgEditorIsOpen = false
 	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") )
 
 	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
@@ -410,9 +441,12 @@ function Thaliz:OnInitialize()
 	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED")
 	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 
-	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX);
+	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX)
 
 	Thaliz_InitClassSpecificStuff();
+
+
+	-- TODO: remove
     Thaliz_InitializeListElements();
 
 	Thaliz_RepositionateButton(RezButton);
@@ -467,7 +501,6 @@ end
 --  *******************************************************
 
 function Thaliz_ToggleConfigurationDialogue()
-	-- LibStub("AceConfigDialog-3.0"):Open("Thaliz")
 	if ThalizConfigDialogOpen then
 		Thaliz_CloseButton_OnClick();
 	else
@@ -931,7 +964,7 @@ end
 
 function Thaliz_ValidateResurrectionMessages()
 	local macros = Thaliz_GetResurrectionMessages();
-	local changed = False;
+	local changed = false
 
 	for n=1, table.getn( macros ), 1 do
 		local macro = macros[n];
@@ -941,7 +974,7 @@ function Thaliz_ValidateResurrectionMessages()
 		else
 			-- Macro is ... hmmm beyond repair?; reset it:
 			macros[n] = { "", EMOTE_GROUP_DEFAULT, "" }
-			changed = True;
+			changed = true
 		end
 	end;
 
@@ -1180,6 +1213,14 @@ function Thaliz_RenumberTable(sourcetable)
 	return temptable;
 end
 
+function Thaliz_DeleteResurrectionMessage(index)
+	local messages = Thaliz_GetResurrectionMessages()
+
+	table.remove(messages, index)
+
+	Thaliz_SetResurrectionMessages(messages)
+end
+
 function Thaliz_SetResurrectionMessages(resurrectionMessages)
 	Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessages, Thaliz_RenumberTable(resurrectionMessages));
 end
@@ -1198,19 +1239,19 @@ function Thaliz_ResetResurrectionMessages()
 	return Thaliz_DefaultResurrectionMessages;
 end
 
-function Thaliz_AddResurrectionMessage(message, group, param)
-	if message and not (message == "") then
-		group = Thaliz_CheckGroup(group);
-		param = Thaliz_CheckGroupValue(param);
+-- function Thaliz_AddResurrectionMessage(message, group, param)
+-- 	if message and not (message == "") then
+-- 		group = Thaliz_CheckGroup(group);
+-- 		param = Thaliz_CheckGroupValue(param);
 
-		--echo(string.format("Adding Res.Msg: msg=%s, grp=%s, val=%s", message, group, param));
+-- 		--echo(string.format("Adding Res.Msg: msg=%s, grp=%s, val=%s", message, group, param));
 
-		local resMsgs = Thaliz_GetResurrectionMessages();
-		resMsgs[ table.getn(resMsgs) + 1] = { message, group, param }
+-- 		local resMsgs = Thaliz_GetResurrectionMessages();
+-- 		resMsgs[ table.getn(resMsgs) + 1] = { message, group, param }
 
-		Thaliz_SetResurrectionMessages(resMsgs);
-	end
-end
+-- 		Thaliz_SetResurrectionMessages(resMsgs);
+-- 	end
+-- end
 
 function Thaliz_CheckMessage(msg)
 	if not msg or msg == "" then
