@@ -159,11 +159,6 @@ local function Thaliz_GetOptions()
 		type = "group",
 		childGroups = "tab",
 		args = {
-			addonInfo = {
-				type = "description",
-				name = string.format("Thaliz version %s\nby %s.", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")),
-				order = -1,
-			},
 			resurrectionMessages = {
 				name = "Resurrection messages",
 				type = "group",
@@ -282,6 +277,29 @@ local function Thaliz_GetOptions()
 								return false
 							end
 						end,
+					},
+				},
+			},
+			about = {
+				name = "About",
+				type = "group",
+				order = 4,
+				cmdHidden = true,
+				args = {
+					title = {
+						type = "header",
+						name = GetAddOnMetadata("Thaliz", "Title"),
+						order = 1,
+					},
+					version = {
+						type = "description",
+						name = string.format("Version %s", GetAddOnMetadata("Thaliz", "Version")),
+						order = 2,
+					},
+					authors = {
+						type = "description",
+						name = string.format("By %s", GetAddOnMetadata("Thaliz", "Author")),
+						order = 3,
 					},
 				},
 			},
