@@ -407,7 +407,25 @@ function Thaliz:createMessageGroupOption(index)
 				type = "input",
 				order = 3,
 				width = "full",
-				set = function (info, value) Thaliz_SetResurrectionMessage(index, 3, value) end,
+				set = function (info, value)
+					local selectedGroup = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
+
+					if selectedGroup == EMOTE_GROUP_CHARACTER or selectedGroup == EMOTE_GROUP_CLASS then
+						value = Thaliz_UCFirst(value)
+					elseif selectedGroup == EMOTE_GROUP_RACE then
+						-- Allow both "nightelf" and "night elf".
+						-- This weird construction ensures all are shown with capital first letter.
+						if string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF" then
+							value = "Night Elf"
+						else
+							value = Thaliz_UCFirst(value)
+						end
+					end
+
+					Thaliz:Print(value)
+
+					Thaliz_SetResurrectionMessage(index, 3, value)
+				end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[3] end,
 			},
 			delete = {
@@ -417,7 +435,7 @@ function Thaliz:createMessageGroupOption(index)
 					-- Remove from the memory
 					Thaliz_DeleteResurrectionMessage(index)
 
-					-- Remove from the options
+					-- Remove from the options / GUI
 					info.options.args.resurrectionMessages.args.messages.args["message" .. index] = nil
 				end,
 			}
@@ -753,6 +771,8 @@ function Thaliz_SaveMessageButton_OnClick()
 			prm = Thaliz_UCFirst(prm)
 		end;
 	end
+
+	Thaliz:Print(prm)
 
 	--echo(string.format("Saving, ID=%d, Offset=%d, Msg=%s, Grp=%s, Val=%s", currentObjectId, offset, msg, grp, prm));
 	Thaliz_CloseMsgEditorButton_OnClick();
