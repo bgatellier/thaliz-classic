@@ -365,8 +365,8 @@ local function Thaliz_GetOptions()
 
 	-- Populate the resurrection messages box
 	local messages = Thaliz_GetResurrectionMessages()
-	for index, message in ipairs(messages) do
-		local messageGroupOption = Thaliz:createMessageGroupOption(index, message)
+	for index in ipairs(messages) do
+		local messageGroupOption = Thaliz:createMessageGroupOption(index)
 
 		options.args.resurrectionMessages.args.messages.args["message" .. index] = messageGroupOption
 	end
@@ -374,9 +374,9 @@ local function Thaliz_GetOptions()
 	return options
 end
 
-function Thaliz:createMessageGroupOption(index, message)
+function Thaliz:createMessageGroupOption(index)
 	return {
-		name = message[1],
+		name = function () return Thaliz_GetResurrectionMessage(index)[1] end,
 		type = "group",
 		order = index,
 		args = {
@@ -388,8 +388,8 @@ function Thaliz:createMessageGroupOption(index, message)
 				set = function (info, value) Thaliz_SetResurrectionMessage(index, 1, value) end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[1] end,
 			},
-			matchingType = {
-				name = "Matching type",
+			group = {
+				name = "Group",
 				type = "select",
 				order = 2,
 				values = {
@@ -402,8 +402,8 @@ function Thaliz:createMessageGroupOption(index, message)
 				set = function (info, value) Thaliz_SetResurrectionMessage(index, 2, value) end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
-			matchingRule = {
-				name = "Matching rule",
+			groupValue = {
+				name = "Group value",
 				type = "input",
 				order = 3,
 				width = "full",
