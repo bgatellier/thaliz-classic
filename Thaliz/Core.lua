@@ -423,7 +423,7 @@ function Thaliz:createMessageGroupOption(index)
 			elseif (group == EMOTE_GROUP_CLASS and RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
 			elseif (group == EMOTE_GROUP_RACE) then
 				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
-				elseif (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ffff0000"
+				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
 				else rgbColor = "ffcc00ff"
 				end
 			end
