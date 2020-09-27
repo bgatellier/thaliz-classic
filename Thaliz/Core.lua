@@ -546,11 +546,11 @@ function Thaliz:OnInitialize()
 	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 
 	Thaliz:RegisterEvents()
+	Thaliz:RegisterOnUpdate()
 
 	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX)
 
 	Thaliz_InitClassSpecificStuff();
-
 
 	-- TODO: remove
     Thaliz_InitializeListElements();
@@ -1874,6 +1874,15 @@ end
 --	Timer functions
 --
 --  *******************************************************
+function Thaliz:RegisterOnUpdate()
+	if not self.frame then
+		self.frame = CreateFrame("Frame")
+	end
+
+	self.frame:SetScript("OnUpdate", Thaliz_OnTimer)
+end
+
+
 local Timers = {}
 local TimerTick = 0
 local NextScanTime = 0;

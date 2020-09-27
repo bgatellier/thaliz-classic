@@ -661,16 +661,4 @@
 			</OnDragStop>
 		</Scripts>
 	</Button>
-
-
-	<!-- Dummy event frame -->
-	<Frame name="ThalizEventFrame">
-		<Scripts>
-			<OnUpdate>
-				if (Thaliz_OnTimer) then
-				Thaliz_OnTimer(elapsed);
-				end
-			</OnUpdate>
-		</Scripts>
-	</Frame>
 </Ui>
