@@ -55,6 +55,18 @@ local classInfo = {
 	{ "Warrior", 20, nil					}
 };
 
+-- https://wow.gamepedia.com/Class_colors
+RAID_CLASS_COLORS = {
+	["HUNTER"] = { r = 0.67, g = 0.83, b = 0.45, colorStr = "ffabd473" },
+	["WARLOCK"] = { r = 0.53, g = 0.53, b = 0.93, colorStr = "ff8788ee" },
+	["PRIEST"] = { r = 1.0, g = 1.0, b = 1.0, colorStr = "ffffffff" },
+	["PALADIN"] = { r = 0.96, g = 0.55, b = 0.73, colorStr = "fff58cba" },
+	["MAGE"] = { r = 0.25, g = 0.78, b = 0.92, colorStr = "ff3fc7eb" },
+	["ROGUE"] = { r = 1.0, g = 0.96, b = 0.41, colorStr = "fffff569" },
+	["DRUID"] = { r = 1.0, g = 0.49, b = 0.04, colorStr = "ffff7d0a" },
+	["SHAMAN"] = { r = 0.0, g = 0.44, b = 0.87, colorStr = "ff0070de" },
+	["WARRIOR"] = { r = 0.78, g = 0.61, b = 0.43, colorStr = "ffc79c6e" },
+  };
 
 
 local IsPaladin = false;
@@ -396,12 +408,27 @@ local function Thaliz_GetOptions()
 end
 
 function Thaliz:createMessageGroupOption(index)
-	local groupClassesAllowed = { "druid", "hunter", "mage", "paladin", "priest", "rogue", "shaman", "warlock", "warrior" }
-	local groupRacesAllowed = { "dwarf", "gnome", "human", "night elf", "orc", "tauren", "troll", "undead" }
+	local groupClassesAllowed = { "Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior" }
+	local groupRacesAllowed = { "Dwarf", "Gnome", "Human", "Night elf", "Orc", "Tauren", "Troll", "Undead" }
 
 	return {
-		name = function ()
-			return Thaliz_GetResurrectionMessage(index)[1]
+		name = function (info)
+			local message = Thaliz_GetResurrectionMessage(index)
+
+			local group = message[2]
+			local groupValue = message[3]
+			local rgbColor = "ff808080"
+
+			if (group == EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
+			elseif (group == EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
+			elseif (group == EMOTE_GROUP_CLASS) then rgbColor = RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
+			elseif (group == EMOTE_GROUP_RACE) then
+				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
+				else rgbColor = "ffff0000"
+				end
+			end
+
+			return "|c" .. rgbColor .. message[1]
 		end,
 		type = "group",
 		order = index,
@@ -450,12 +477,15 @@ function Thaliz:createMessageGroupOption(index)
 
 					if (selectedGroup == EMOTE_GROUP_CLASS) then
 						allowedValues = groupClassesAllowed
-						standardizedInput = string.lower(standardizedInput)
+						standardizedInput = Thaliz_UCFirst(standardizedInput)
 					elseif (selectedGroup == EMOTE_GROUP_RACE) then
 						allowedValues = groupRacesAllowed
-						standardizedInput = string.lower(standardizedInput)
+						
+						-- Allow both "nightelf" and "night elf".
+						-- This weird construction ensures all are shown with capital first letter.
+						if (string.upper(standardizedInput) == "nightelf" or string.upper("")) then standardizedInput = "night elf" end
 
-						if (standardizedInput == "nightelf") then standardizedInput = "night elf" end
+						standardizedInput = Thaliz_UCFirst(standardizedInput)
 					end
 
 					local allowedValuesQty = table.getn(allowedValues)
