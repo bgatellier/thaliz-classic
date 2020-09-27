@@ -11,7 +11,7 @@ https://github.com/Sentilix/thaliz-classic
 Please see the ReadMe.txt for addon details.
 ]]
 
-Thaliz = LibStub("AceAddon-3.0"):NewAddon("Thaliz", "AceConsole-3.0")
+Thaliz = LibStub("AceAddon-3.0"):NewAddon("Thaliz", "AceConsole-3.0", "AceEvent-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("Thaliz", true)
 
 local PARTY_CHANNEL							= "PARTY"
@@ -545,13 +545,7 @@ function Thaliz:OnInitialize()
 	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 
-    ThalizEventFrame:RegisterEvent("CHAT_MSG_ADDON")
-    ThalizEventFrame:RegisterEvent("RAID_ROSTER_UPDATE")
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_START")
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_STOP")
-    ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_SENT")
-	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED")
-	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	Thaliz:RegisterEvents()
 
 	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX)
 
@@ -2049,6 +2043,21 @@ end;
 --	Event handlers
 --
 --  *******************************************************
+function Thaliz:RegisterEvents()
+	local registredEvents = {
+		"CHAT_MSG_ADDON",
+		"RAID_ROSTER_UPDATE",
+		"UNIT_SPELLCAST_START",
+		"UNIT_SPELLCAST_STOP",
+		"UNIT_SPELLCAST_SENT",
+		"INCOMING_RESURRECT_CHANGED",
+		"COMBAT_LOG_EVENT_UNFILTERED",
+	}
+
+	for k, eventName in ipairs(registredEvents) do
+		Thaliz:RegisterEvent(eventName, Thaliz_OnEvent)
+	end
+end
 
 local SpellcastIsStarted = 0;
 function Thaliz_OnEvent(self, event, ...)

@@ -666,11 +666,6 @@
 	<!-- Dummy event frame -->
 	<Frame name="ThalizEventFrame">
 		<Scripts>
-			<OnEvent>
-				if (Thaliz_OnEvent) then
-				Thaliz_OnEvent(self, event, ...);
-				end
-			</OnEvent>
 			<OnUpdate>
 				if (Thaliz_OnTimer) then
 				Thaliz_OnTimer(elapsed);
