@@ -462,9 +462,15 @@ function Thaliz:createMessageGroupOption(index)
 				order = 3,
 				width = "full",
 				set = function (info, value)
-					local selectedGroup = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
+					local group = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
 
-					if selectedGroup == EMOTE_GROUP_CHARACTER or selectedGroup == EMOTE_GROUP_CLASS or selectedGroup == EMOTE_GROUP_RACE then
+					-- Allow both "nightelf" and "night elf".
+					-- This weird construction ensures all are shown with capital first letter.
+					if (group == EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
+						value = "night elf"
+					end
+
+					if group == EMOTE_GROUP_CHARACTER or group == EMOTE_GROUP_CLASS or group == EMOTE_GROUP_RACE then
 						value = Thaliz_UCFirst(value)
 					end
 
@@ -480,10 +486,12 @@ function Thaliz:createMessageGroupOption(index)
 						standardizedInput = Thaliz_UCFirst(standardizedInput)
 					elseif (selectedGroup == EMOTE_GROUP_RACE) then
 						allowedValues = groupRacesAllowed
-						
+
 						-- Allow both "nightelf" and "night elf".
 						-- This weird construction ensures all are shown with capital first letter.
-						if (string.upper(standardizedInput) == "nightelf" or string.upper("")) then standardizedInput = "night elf" end
+						if string.upper(standardizedInput) == "NIGHTELF" or string.upper(standardizedInput) == "NIGHT ELF" then
+							standardizedInput = "night elf"
+						end
 
 						standardizedInput = Thaliz_UCFirst(standardizedInput)
 					end
