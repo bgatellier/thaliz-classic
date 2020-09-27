@@ -1887,7 +1887,7 @@ local Timers = {}
 local TimerTick = 0
 local NextScanTime = 0;
 
-function Thaliz_OnTimer(elapsed)
+function Thaliz_OnTimer(self, elapsed)
 	TimerTick = TimerTick + elapsed
 
 	if TimerTick > (NextScanTime + ThalizScanFrequency) then
