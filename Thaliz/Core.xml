@@ -666,11 +666,6 @@
 	<!-- Dummy event frame -->
 	<Frame name="ThalizEventFrame">
 		<Scripts>
-			<OnLoad>
-				if (Thaliz_OnLoad) then
-				Thaliz_OnLoad();
-				end
-			</OnLoad>
 			<OnEvent>
 				if (Thaliz_OnEvent) then
 				Thaliz_OnEvent(self, event, ...);

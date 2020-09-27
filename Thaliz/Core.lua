@@ -2156,30 +2156,6 @@ function Thaliz_OnEvent(self, event, ...)
 	end
 end
 
--- function Thaliz_OnLoad()
--- 	msgEditorIsOpen = false;
--- 	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") );
-
--- 	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
-
--- 	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")));
---     ThalizEventFrame:RegisterEvent("ADDON_LOADED");
---     ThalizEventFrame:RegisterEvent("CHAT_MSG_ADDON");
---     ThalizEventFrame:RegisterEvent("RAID_ROSTER_UPDATE");
---     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_START");
---     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_STOP");
---     ThalizEventFrame:RegisterEvent("UNIT_SPELLCAST_SENT");
--- 	ThalizEventFrame:RegisterEvent("INCOMING_RESURRECT_CHANGED");
--- 	ThalizEventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
-
--- 	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX);
-
--- 	Thaliz_InitClassSpecificStuff();
---     Thaliz_InitializeListElements();
-
--- 	Thaliz_RepositionateButton(RezButton);
--- end
-
 function Thaliz_RepositionateButton(self)
 	local x, y = self:GetLeft(), self:GetTop() - UIParent:GetHeight();
 
