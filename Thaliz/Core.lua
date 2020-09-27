@@ -356,8 +356,7 @@ local function Thaliz_GetOptions()
 				desc = "Show/Hide configuration options",
 				type = "execute",
 				guiHidden = true,
-				set = function (info) LibStub("AceConfigDialog-3.0"):Open(THALIZ_NAME) end,
-				get = function (value) return ThalizConfigDialogOpen end,
+				func = function (info) LibStub("AceConfigDialog-3.0"):Open(THALIZ_NAME) end,
 			},
 			debug = {
 				name = "Debug",
