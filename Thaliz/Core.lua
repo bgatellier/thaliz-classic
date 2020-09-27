@@ -357,10 +357,9 @@ local function Thaliz_GetOptions()
 			config = {
 				name = "Configuration",
 				desc = "Show/Hide configuration options",
-				type = "toggle",
+				type = "execute",
 				guiHidden = true,
-				set = Thaliz_ToggleConfigurationDialogue,
-				get = function (value) return ThalizConfigDialogOpen end,
+				func = Thaliz_ToggleConfigurationDialogue,
 			},
 			debug = {
 				name = "Debug",
