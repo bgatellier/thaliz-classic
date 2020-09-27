@@ -154,6 +154,27 @@ local Thaliz_DefaultResurrectionMessages = {
 	{ "(Ressing) %s, you are too late... I... must... OBEY!",			EMOTE_GROUP_DEFAULT, "" } 	-- Thaddius
 }
 
+-- Checks if a value (v) is in a numeric table (t)
+local function inNumericTable(v, t)
+	local tLength = table.getn(t)
+
+	if (tLength == 0) then
+		return false
+	end
+
+	local i = 1
+	local isInTable = false
+	while i <= tLength and not isInTable do
+		if (t[i] == v) then
+			isInTable = true
+		end
+
+		i = i + 1
+	end
+
+	return isInTable
+end
+
 local function Thaliz_GetOptions()
 	local options =  {
 		type = "group",
@@ -375,8 +396,13 @@ local function Thaliz_GetOptions()
 end
 
 function Thaliz:createMessageGroupOption(index)
+	local groupClassesAllowed = { "druid", "hunter", "mage", "paladin", "priest", "rogue", "shaman", "warlock", "warrior" }
+	local groupRacesAllowed = { "dwarf", "gnome", "human", "night elf", "orc", "tauren", "troll", "undead" }
+
 	return {
-		name = function () return Thaliz_GetResurrectionMessage(index)[1] end,
+		name = function ()
+			return Thaliz_GetResurrectionMessage(index)[1]
+		end,
 		type = "group",
 		order = index,
 		args = {
@@ -389,11 +415,11 @@ function Thaliz:createMessageGroupOption(index)
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[1] end,
 			},
 			group = {
-				name = "Group",
+				name = "Use it for",
 				type = "select",
 				order = 2,
 				values = {
-					[EMOTE_GROUP_DEFAULT] = EMOTE_GROUP_DEFAULT,
+					[EMOTE_GROUP_DEFAULT] = "Everyone",
 					[EMOTE_GROUP_GUILD] = EMOTE_GROUP_GUILD,
 					[EMOTE_GROUP_CHARACTER] = EMOTE_GROUP_CHARACTER,
 					[EMOTE_GROUP_CLASS] = EMOTE_GROUP_CLASS,
@@ -403,28 +429,59 @@ function Thaliz:createMessageGroupOption(index)
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
 			groupValue = {
-				name = "Group value",
+				name = "...that matches",
+				desc = "Use the english namings if you choose the class or race selector, e.g. hunter, priest...",
 				type = "input",
 				order = 3,
 				width = "full",
 				set = function (info, value)
 					local selectedGroup = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
 
-					if selectedGroup == EMOTE_GROUP_CHARACTER or selectedGroup == EMOTE_GROUP_CLASS then
+					if selectedGroup == EMOTE_GROUP_CHARACTER or selectedGroup == EMOTE_GROUP_CLASS or selectedGroup == EMOTE_GROUP_RACE then
 						value = Thaliz_UCFirst(value)
-					elseif selectedGroup == EMOTE_GROUP_RACE then
-						-- Allow both "nightelf" and "night elf".
-						-- This weird construction ensures all are shown with capital first letter.
-						if string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF" then
-							value = "Night Elf"
+					end
+
+					Thaliz_SetResurrectionMessage(index, 3, value)
+				end,
+				validate = function (info, value)
+					local allowedValues = {}
+					local standardizedInput = value
+					local selectedGroup = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
+
+					if (selectedGroup == EMOTE_GROUP_CLASS) then
+						allowedValues = groupClassesAllowed
+						standardizedInput = string.lower(standardizedInput)
+					elseif (selectedGroup == EMOTE_GROUP_RACE) then
+						allowedValues = groupRacesAllowed
+						standardizedInput = string.lower(standardizedInput)
+
+						if (standardizedInput == "nightelf") then standardizedInput = "night elf" end
+					end
+
+					local allowedValuesQty = table.getn(allowedValues)
+
+					-- Nothing to validate: returns validation OK
+					if (allowedValuesQty == 0) then return true end
+
+					local isValidInput = inNumericTable(standardizedInput, allowedValues)
+
+					-- Input is valid: returns validation OK
+					if (isValidInput) then return true end
+
+					-- Input is invalid: build and returns the error message
+					local error = "The value must be one of: "
+
+					for k, allowedValue in ipairs(allowedValues) do
+						error = error .. allowedValue
+
+						if (k < allowedValuesQty) then
+							error = error .. ", "
 						else
-							value = Thaliz_UCFirst(value)
+							error = error .. "."
 						end
 					end
 
-					Thaliz:Print(value)
-
-					Thaliz_SetResurrectionMessage(index, 3, value)
+					return error
 				end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[3] end,
 			},
@@ -771,8 +828,6 @@ function Thaliz_SaveMessageButton_OnClick()
 			prm = Thaliz_UCFirst(prm)
 		end;
 	end
-
-	Thaliz:Print(prm)
 
 	--echo(string.format("Saving, ID=%d, Offset=%d, Msg=%s, Grp=%s, Val=%s", currentObjectId, offset, msg, grp, prm));
 	Thaliz_CloseMsgEditorButton_OnClick();
