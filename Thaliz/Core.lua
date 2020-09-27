@@ -127,9 +127,6 @@ local Thaliz_OPTION_RezButtonPosY						= "RezButtonPosY";
 
 local Thaliz_DebugFunction = nil;
 
-local currentObjectId;	-- A small hack: the object ID is lost when using own frame
-local msgEditorIsOpen;
-
 -- Persisted information:
 Thaliz_Options = { }
 
@@ -359,7 +356,8 @@ local function Thaliz_GetOptions()
 				desc = "Show/Hide configuration options",
 				type = "execute",
 				guiHidden = true,
-				func = Thaliz_ToggleConfigurationDialogue,
+				set = function (info) LibStub("AceConfigDialog-3.0"):Open(THALIZ_NAME) end,
+				get = function (value) return ThalizConfigDialogOpen end,
 			},
 			debug = {
 				name = "Debug",
@@ -557,10 +555,8 @@ end
 
 
 function Thaliz:OnInitialize()
-	msgEditorIsOpen = false
 	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata("Thaliz", "Version") )
 
-	_G["ThalizVersionString"]:SetText(string.format("Thaliz version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata("Thaliz", "Version"), GetAddOnMetadata("Thaliz", "Author")))
 
 	Thaliz:RegisterEvents()
@@ -570,8 +566,6 @@ function Thaliz:OnInitialize()
 
 	Thaliz_InitClassSpecificStuff();
 
-	-- TODO: remove
-    Thaliz_InitializeListElements();
 
 	Thaliz_RepositionateButton(RezButton);
 
@@ -624,32 +618,9 @@ end
 --
 --  *******************************************************
 
-function Thaliz_ToggleConfigurationDialogue()
-	if ThalizConfigDialogOpen then
-		Thaliz_CloseButton_OnClick();
-	else
-		Thaliz_OpenConfigurationDialogue();
-	end;
-end
-
-function Thaliz_OpenConfigurationDialogue()
-	local whisperMsg = Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage);
-
-	if not whisperMsg then whisperMsg = ""; end;
-
-	ThalizFrameWhisper:SetText(whisperMsg);
-	ThalizFrameWhisper:SetAutoFocus(false);
-	ThalizConfigDialogOpen = true;
-	ThalizFrame:Show();
-end
-
-function Thaliz_CloseConfigurationDialogue()
-	ThalizConfigDialogOpen = false;
-	ThalizMsgEditorFrame:Hide();
-	ThalizFrame:Hide();
-end
-
-
+-- 
+-- TODO: restore priorities into the new config dialog
+-- 
 function Thaliz_RefreshVisibleMessageList(offset)
 --	echo(string.format("Thaliz_RefreshVisibleMessageList: Offset=%d", offset));
 	local macros = Thaliz_GetResurrectionMessages();
@@ -725,16 +696,6 @@ function Thaliz_RefreshVisibleMessageList(offset)
 
 		--echo(string.format("-> Msg=%s, Grp=%s, Value=%s", msg, grp, prm));
 
-		local frame = _G["ThalizFrameTableListEntry"..n];
-		if(not frame) then
-			echo("*** Oops, frame is nil");
-			return;
-		end;
-
-		_G[frame:GetName().."Message"]:SetText(msg);
-		_G[frame:GetName().."Group"]:SetText(grp);
-		_G[frame:GetName().."Param"]:SetText(prm);
-
 		local grpColor = { 0.5, 0.5, 0.5 }
 		local prmColor = { 0.5, 0.5, 0.5 }
 
@@ -777,198 +738,9 @@ function Thaliz_RefreshVisibleMessageList(offset)
 			end
 			prmColor = grpColor;
 		end;
-
-		_G[frame:GetName().."Group"]:SetTextColor(grpColor[1], grpColor[2], grpColor[3]);
-		_G[frame:GetName().."Param"]:SetTextColor(prmColor[1], prmColor[2], prmColor[3]);
-
-		frame:Show();
 	end
 end
 
-function Thaliz_UpdateMessageList()
-	FauxScrollFrame_Update(ThalizFrameTableList, THALIZ_MAX_MESSAGES, 10, 20);
-	local offset = FauxScrollFrame_GetOffset(ThalizFrameTableList);
-
-	Thaliz_RefreshVisibleMessageList(offset);
-end
-
-function Thaliz_InitializeListElements()
-	local entry = CreateFrame("Button", "$parentEntry1", ThalizFrameTableList, "Thaliz_CellTemplate");
-	entry:SetID(1);
-	entry:SetPoint("TOPLEFT", 4, -4);
-	for n=2, THALIZ_MAX_MESSAGES, 1 do
-		local entry = CreateFrame("Button", "$parentEntry"..n, ThalizFrameTableList, "Thaliz_CellTemplate");
-		entry:SetID(n);
-		entry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
-	end
-end
-
-function Thaliz_OnMessageClick(object)
-	Thaliz_CloseMsgEditorButton_OnClick();
-
-	currentObjectId = object:GetID();
-	local offset = FauxScrollFrame_GetOffset(ThalizFrameTableList);
-
-	local msg = _G[object:GetName().."Message"]:GetText();
-	local grp = _G[object:GetName().."Group"]:GetText();
-	local prm = _G[object:GetName().."Param"]:GetText();
-	if not msg or msg == THALIZ_EMPTY_MESSAGE then
-		msg = "";
-	end
-
-	grp = Thaliz_CheckGroup(grp);
-	prm = Thaliz_CheckGroupValue(prm);
-
-	local frame = _G["ThalizMsgEditorFrame"];
-	_G[frame:GetName().."Message"]:SetText(msg);
-	_G[frame:GetName().."GroupValue"]:SetText(prm);
-
-	_G[frame:GetName().."CheckbuttonAlways"]:SetChecked();
-	_G[frame:GetName().."CheckbuttonGuild"]:SetChecked();
-	_G[frame:GetName().."CheckbuttonCharacter"]:SetChecked();
-	_G[frame:GetName().."CheckbuttonClass"]:SetChecked();
-	_G[frame:GetName().."CheckbuttonRace"]:SetChecked();
-
-	if grp == EMOTE_GROUP_GUILD then
-		_G[frame:GetName().."CheckbuttonGuild"]:SetChecked(1);
-	elseif grp == EMOTE_GROUP_CHARACTER then
-		_G[frame:GetName().."CheckbuttonCharacter"]:SetChecked(1);
-	elseif grp == EMOTE_GROUP_CLASS then
-		_G[frame:GetName().."CheckbuttonClass"]:SetChecked(1);
-	elseif grp == EMOTE_GROUP_RACE then
-		_G[frame:GetName().."CheckbuttonRace"]:SetChecked(1);
-	else
-		_G[frame:GetName().."CheckbuttonAlways"]:SetChecked(1);
-	end
-
-	msgEditorIsOpen = true;
-	ThalizMsgEditorFrame:Show();
-	ThalizMsgEditorFrameMessage:SetFocus();
-end
-
-
-function Thaliz_SaveMessageButton_OnClick()
-	local msg = ThalizMsgEditorFrameMessage:GetText();
-	local prm = ThalizMsgEditorFrameGroupValue:GetText();
-	local grp;
-	local offset = FauxScrollFrame_GetOffset(ThalizFrameTableList);
-
-	if ThalizMsgEditorFrameCheckbuttonGuild:GetChecked() then
-		grp = EMOTE_GROUP_GUILD;
-	elseif ThalizMsgEditorFrameCheckbuttonCharacter:GetChecked() then
-		grp = EMOTE_GROUP_CHARACTER;
-	elseif ThalizMsgEditorFrameCheckbuttonClass:GetChecked() then
-		grp = EMOTE_GROUP_CLASS;
-	elseif ThalizMsgEditorFrameCheckbuttonRace:GetChecked() then
-		grp = EMOTE_GROUP_RACE;
-	else
-		grp = EMOTE_GROUP_DEFAULT;
-	end;
-
-	if	grp == EMOTE_GROUP_CHARACTER or
-		grp == EMOTE_GROUP_CLASS then
-		prm = Thaliz_UCFirst(prm)
-	elseif grp == EMOTE_GROUP_RACE then
-		-- Allow both "nightelf" and "night elf".
-		-- This weird construction ensures all are shown with capital first letter.
-		if string.upper(prm) == "NIGHTELF" or string.upper(prm) == "NIGHT ELF" then
-			prm = "Night Elf"
-		else
-			prm = Thaliz_UCFirst(prm)
-		end;
-	end
-
-	--echo(string.format("Saving, ID=%d, Offset=%d, Msg=%s, Grp=%s, Val=%s", currentObjectId, offset, msg, grp, prm));
-	Thaliz_CloseMsgEditorButton_OnClick();
-	Thaliz_UpdateResurrectionMessage(currentObjectId, offset, msg, grp, prm);
-	Thaliz_UpdateMessageList();
-end
-
-
-function Thaliz_HandleCheckbox(checkbox)
-	local checkboxname = checkbox:GetName();
-
-	--	If checked, then we need to uncheck others in same group:
-	if checkboxname == "ThalizFrameCheckbuttonRaid" or checkboxname == "ThalizFrameCheckbuttonYell" or checkboxname == "ThalizFrameCheckbuttonSay" then
-		if checkbox:GetChecked() then
-			if checkboxname == "ThalizFrameCheckbuttonRaid" then
-				Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "RAID");
-				ThalizFrameCheckbuttonSay:SetChecked();
-				ThalizFrameCheckbuttonYell:SetChecked();
-			elseif checkboxname == "ThalizFrameCheckbuttonYell" then
-				Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "YELL");
-				ThalizFrameCheckbuttonSay:SetChecked();
-				ThalizFrameCheckbuttonRaid:SetChecked();
-			elseif checkboxname == "ThalizFrameCheckbuttonSay" then
-				Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "SAY");
-				ThalizFrameCheckbuttonRaid:SetChecked();
-				ThalizFrameCheckbuttonYell:SetChecked();
-			end
-		else
-			Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "NONE");
-			ThalizFrameCheckbuttonRaid:SetChecked();
-			ThalizFrameCheckbuttonSay:SetChecked();
-			ThalizFrameCheckbuttonYell:SetChecked();
-		end
-	end
-
-	-- "single" checkboxes (checkboxes with no impact on other checkboxes):
-	if ThalizFrameCheckbuttonWhisper:GetChecked() then
-		Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 1);
-	else
-		Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 0);
-	end
-
-	if ThalizFrameCheckbuttonIncludeDefault:GetChecked() then
-		Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1);
-	else
-		Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0);
-	end
-
-	if ThalizFrameCheckbuttonPerCharacter:GetChecked() then
-		Thaliz_SetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Character");
-	else
-		Thaliz_SetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Realm");
-	end
-
-	-- Emote Groups: Only one can be active:
-	if checkboxname == "ThalizMsgEditorFrameCheckbuttonAlways" then
-		if checkbox:GetChecked() then
-			ThalizMsgEditorFrameCheckbuttonGuild:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonCharacter:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonClass:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonRace:SetChecked();
-		end;
-	elseif checkboxname == "ThalizMsgEditorFrameCheckbuttonGuild" then
-		if checkbox:GetChecked() then
-			ThalizMsgEditorFrameCheckbuttonAlways:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonCharacter:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonClass:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonRace:SetChecked();
-		end;
-	elseif checkboxname == "ThalizMsgEditorFrameCheckbuttonCharacter" then
-		if checkbox:GetChecked() then
-			ThalizMsgEditorFrameCheckbuttonAlways:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonGuild:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonClass:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonRace:SetChecked();
-		end;
-	elseif checkboxname == "ThalizMsgEditorFrameCheckbuttonClass" then
-		if checkbox:GetChecked() then
-			ThalizMsgEditorFrameCheckbuttonAlways:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonGuild:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonCharacter:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonRace:SetChecked();
-		end;
-	elseif checkboxname == "ThalizMsgEditorFrameCheckbuttonRace" then
-		if checkbox:GetChecked() then
-			ThalizMsgEditorFrameCheckbuttonAlways:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonGuild:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonCharacter:SetChecked();
-			ThalizMsgEditorFrameCheckbuttonClass:SetChecked();
-		end;
-	end;
-end
 
 function Thaliz_GetRootOption(parameter, defaultValue)
 	if Thaliz_Options then
@@ -1063,25 +835,6 @@ function Thaliz_InitializeConfigSettings()
 	local x,y = RezButton:GetPoint();
 	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosX, Thaliz_GetOption(Thaliz_OPTION_RezButtonPosX, x))
 	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosY, Thaliz_GetOption(Thaliz_OPTION_RezButtonPosY, y))
-
-	if Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "RAID" then
-		ThalizFrameCheckbuttonRaid:SetChecked(1)
-	end
-	if Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "SAY" then
-		ThalizFrameCheckbuttonSay:SetChecked(1)
-	end
-	if Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "YELL" then
-		ThalizFrameCheckbuttonYell:SetChecked(1)
-	end
-	if Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 then
-		ThalizFrameCheckbuttonWhisper:SetChecked(1)
-	end
-	if Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 then
-		ThalizFrameCheckbuttonIncludeDefault:SetChecked(1)
-	end
-	if Thaliz_GetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings) == "Character" then
-		ThalizFrameCheckbuttonPerCharacter:SetChecked(1)
-	end
 
 	Thaliz_ValidateResurrectionMessages();
 end
@@ -1363,20 +1116,6 @@ function Thaliz_ResetResurrectionMessages()
 	return Thaliz_DefaultResurrectionMessages;
 end
 
--- function Thaliz_AddResurrectionMessage(message, group, param)
--- 	if message and not (message == "") then
--- 		group = Thaliz_CheckGroup(group);
--- 		param = Thaliz_CheckGroupValue(param);
-
--- 		--echo(string.format("Adding Res.Msg: msg=%s, grp=%s, val=%s", message, group, param));
-
--- 		local resMsgs = Thaliz_GetResurrectionMessages();
--- 		resMsgs[ table.getn(resMsgs) + 1] = { message, group, param }
-
--- 		Thaliz_SetResurrectionMessages(resMsgs);
--- 	end
--- end
-
 function Thaliz_CheckMessage(msg)
 	if not msg or msg == "" then
 		msg = THALIZ_EMPTY_MESSAGE;
@@ -1407,14 +1146,6 @@ function Thaliz_UpdateResurrectionMessage(index, offset, message, group, param)
 	messages[index + offset] = { message, group, param }
 
 	Thaliz_SetResurrectionMessages( messages );
-
-	--	Update the frame UI:
-	local frame = _G["ThalizFrameTableListEntry"..index];
-	if not message or message == "" then
-		message = THALIZ_EMPTY_MESSAGE;
-	end
-	_G[frame:GetName().."Message"]:SetText(message);
-	_G[frame:GetName().."Param"]:SetText(param);
 end
 
 
@@ -2198,27 +1929,4 @@ function Thaliz_RepositionateButton(self)
 
 	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosX, x);
 	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosY, y);
-end
-
-function Thaliz_OKButton_OnClick()
-	Thaliz_CloseConfigurationDialogue();
-	msgEditorIsOpen = false;
-
-	local whisperMsg = _G["ThalizFrameWhisper"]:GetText(whisperMsg);
-	Thaliz_SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, whisperMsg);
-
-	Thaliz_ConfigurationLevel = Thaliz_GetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, Thaliz_Configuration_Default_Level);
-end
-
-function Thaliz_CloseButton_OnClick()
-	if msgEditorIsOpen then
-		Thaliz_CloseMsgEditorButton_OnClick();
-	else
-		Thaliz_CloseConfigurationDialogue();
-	end;
-end
-
-function Thaliz_CloseMsgEditorButton_OnClick()
-	ThalizMsgEditorFrame:Hide();
-	msgEditorIsOpen = false;
 end
