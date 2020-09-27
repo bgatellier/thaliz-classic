@@ -452,13 +452,30 @@ function Thaliz:createMessageGroupOption(index)
 					[EMOTE_GROUP_CLASS] = EMOTE_GROUP_CLASS,
 					[EMOTE_GROUP_RACE] = EMOTE_GROUP_RACE,
 				},
-				set = function (info, value) Thaliz_SetResurrectionMessage(index, 2, value) end,
+				set = function (info, value)
+					Thaliz_SetResurrectionMessage(index, 2, value)
+
+					-- Reset the value of the groupValue option
+					Thaliz_SetResurrectionMessage(index, 3, "")
+
+					-- Enable/disable the groupValue option
+					if (value == EMOTE_GROUP_DEFAULT) then
+						info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.groupValue.disabled = true
+					else
+						info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.groupValue.disabled = false
+					end
+				end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
 			groupValue = {
 				name = "...that matches",
 				desc = "Use the english namings if you choose the class or race selector, e.g. hunter, priest...",
 				type = "input",
+				disabled = function ()
+					local message = Thaliz_GetResurrectionMessage(index)
+
+					return message[2] == EMOTE_GROUP_DEFAULT
+				end,
 				order = 3,
 				width = "full",
 				set = function (info, value)
