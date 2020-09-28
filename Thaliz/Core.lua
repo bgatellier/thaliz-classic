@@ -2071,7 +2071,7 @@ end;
 --
 --  *******************************************************
 function Thaliz:RegisterEvents()
-	local registredEvents = {
+	local eventNames = {
 		"CHAT_MSG_ADDON",
 		"RAID_ROSTER_UPDATE",
 		"UNIT_SPELLCAST_START",
@@ -2081,13 +2081,14 @@ function Thaliz:RegisterEvents()
 		"COMBAT_LOG_EVENT_UNFILTERED",
 	}
 
-	for k, eventName in ipairs(registredEvents) do
-		Thaliz:RegisterEvent(eventName, Thaliz_OnEvent)
+	for k, eventName in ipairs(eventNames) do
+		Thaliz:RegisterEvent(eventName, "OnEvent")
 	end
 end
 
+
 local SpellcastIsStarted = 0;
-function Thaliz_OnEvent(self, event, ...)
+function Thaliz:OnEvent(event, ...)
 	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_OnEvent");
 
 	if (event == "UNIT_SPELLCAST_SENT") then
