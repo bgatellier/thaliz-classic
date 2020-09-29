@@ -216,8 +216,7 @@ local function Thaliz_GetOptions()
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) ~= "NONE" end,
 					},
 					channel = {
-						name = "Target channel",
-						desc = "Channel where the  messages will be send",
+						name = "Warning channel",
 						type = "select",
 						values = { RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
 						order = 2,
@@ -226,8 +225,8 @@ local function Thaliz_GetOptions()
 						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
 					},
-					includeDefaults = {
-						name = "Include Defaults in filtered messages",
+					includeEveryone = {
+						name = "Add messages for everyone to the list of targeted messages",
 						type = "toggle",
 						order = 3,
 						width = "full",
@@ -463,7 +462,7 @@ function Thaliz:createMessageGroupOption(index)
 			},
 			groupValue = {
 				name = "...that matches",
-				desc = "Use the english namings if you choose the class or race selector, e.g. hunter, priest...",
+				desc = "Use the english namings if you choose the class or race selector, e.g. hunter, dwarf...",
 				type = "input",
 				disabled = function ()
 					local message = Thaliz_GetResurrectionMessage(index)
@@ -997,9 +996,9 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 		macros[index] = rmacro[n]
 	end
 
-	-- Include the default macro list if
-	-- * No macros matching group rules, or
-	-- * The "Include Default" option is selected.
+	-- Include the messages targetting everyone if:
+	-- * There is no messages matching the group rule, or
+	-- * The "Add messages for everyone to the list of targeted messages" option is selected.
 	if table.getn(macros) == 0 or
 		Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 then
 		for n=1, table.getn( dmacro ), 1 do
