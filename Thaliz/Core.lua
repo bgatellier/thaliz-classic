@@ -444,10 +444,10 @@ function Thaliz:createMessageGroupOption(index)
 				order = 2,
 				values = {
 					[EMOTE_GROUP_DEFAULT] = "Everyone",
-					[EMOTE_GROUP_GUILD] = EMOTE_GROUP_GUILD,
-					[EMOTE_GROUP_CHARACTER] = EMOTE_GROUP_CHARACTER,
-					[EMOTE_GROUP_CLASS] = EMOTE_GROUP_CLASS,
-					[EMOTE_GROUP_RACE] = EMOTE_GROUP_RACE,
+					[EMOTE_GROUP_GUILD] = "a Guild",
+					[EMOTE_GROUP_CHARACTER] = "a Character",
+					[EMOTE_GROUP_CLASS] = "a Class",
+					[EMOTE_GROUP_RACE] = "a Race",
 				},
 				set = function (info, value)
 					Thaliz_SetResurrectionMessage(index, 2, value)
@@ -461,8 +461,8 @@ function Thaliz:createMessageGroupOption(index)
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
 			groupValue = {
-				name = "...that matches",
-				desc = "Use the english namings if you choose the class or race selector, e.g. hunter, dwarf...",
+				name = "who/which is",
+				desc = "For the class or race selector use the english language (e.g. hunter, dwarf...",
 				type = "input",
 				disabled = function ()
 					local message = Thaliz_GetResurrectionMessage(index)
