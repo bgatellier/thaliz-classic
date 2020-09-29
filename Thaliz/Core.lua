@@ -195,8 +195,8 @@ local function Thaliz_GetOptions()
 		type = "group",
 		childGroups = "tab",
 		args = {
-			warnPeople = {
-				name = "Warn people",
+			public = {
+				name = "Public messages",
 				type = "group",
 				order = 1,
 				cmdHidden = true,
@@ -216,7 +216,7 @@ local function Thaliz_GetOptions()
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) ~= "NONE" end,
 					},
 					channel = {
-						name = "Warning channel",
+						name = "Broadcast channel",
 						type = "select",
 						values = { RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
 						order = 2,
@@ -263,13 +263,13 @@ local function Thaliz_GetOptions()
 
 							local message = Thaliz_GetResurrectionMessage(index)
 
-							info.options.args.warnPeople.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
+							info.options.args.public.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
 						end,
 					},
 				},
 			},
-			targetWhisper = {
-				name = "Whisp the target",
+			private = {
+				name = "Private message",
 				type = "group",
 				order = 2,
 				args = {
@@ -397,7 +397,7 @@ local function Thaliz_GetOptions()
 	for index in ipairs(messages) do
 		local messageGroupOption = Thaliz:createMessageGroupOption(index)
 
-		options.args.warnPeople.args.messages.args["message" .. index] = messageGroupOption
+		options.args.public.args.messages.args["message" .. index] = messageGroupOption
 	end
 
 	return options
@@ -456,7 +456,7 @@ function Thaliz:createMessageGroupOption(index)
 					Thaliz_SetResurrectionMessage(index, 3, "")
 
 					-- Enable/disable the groupValue option
-					info.options.args.warnPeople.args.messages.args["message" .. index].args.groupValue.disabled = (value == EMOTE_GROUP_DEFAULT)
+					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == EMOTE_GROUP_DEFAULT)
 				end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
@@ -472,7 +472,7 @@ function Thaliz:createMessageGroupOption(index)
 				order = 3,
 				width = "full",
 				set = function (info, value)
-					local group = info.options.args.warnPeople.args.messages.args["message" .. index].args.group.get()
+					local group = info.options.args.public.args.messages.args["message" .. index].args.group.get()
 
 					-- Allow both "nightelf" and "night elf".
 					-- This weird construction ensures all are shown with capital first letter.
@@ -489,7 +489,7 @@ function Thaliz:createMessageGroupOption(index)
 				validate = function (info, value)
 					local allowedValues = {}
 					local standardizedInput = value
-					local selectedGroup = info.options.args.warnPeople.args.messages.args["message" .. index].args.group.get()
+					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
 
 					if (selectedGroup == EMOTE_GROUP_CLASS) then
 						allowedValues = groupClassesAllowed
@@ -541,7 +541,7 @@ function Thaliz:createMessageGroupOption(index)
 					Thaliz_DeleteResurrectionMessage(index)
 
 					-- Remove from the options / GUI
-					info.options.args.warnPeople.args.messages.args["message" .. index] = nil
+					info.options.args.public.args.messages.args["message" .. index] = nil
 				end,
 			}
 		},
