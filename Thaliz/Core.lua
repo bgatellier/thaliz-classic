@@ -346,8 +346,7 @@ local function Thaliz_GetOptions()
 					},
 					repository = {
 						type = "description",
-						-- |Hurl:%s|h%s|h
-						name = string.format("\nGo to |Hurl:%s|h%s|h to download latest version", GetAddOnMetadata(THALIZ_NAME, "X-Website"), GetAddOnMetadata(THALIZ_NAME, "X-Website")),
+						name = string.format("\nDownload the latest version at %s", GetAddOnMetadata(THALIZ_NAME, "X-Website")),
 						fontSize = "medium",
 						order = 4,
 					},
@@ -1606,7 +1605,7 @@ function Thalix_CheckIsNewVersion(versionstring)
 			if not THALIZ_UPDATE_MESSAGE_SHOWN then
 				THALIZ_UPDATE_MESSAGE_SHOWN = true
 				Thaliz_Echo(string.format("NOTE: A newer version of ".. COLOUR_INTRO .."THALIZ"..COLOUR_CHAT.."! is available (version %s)!", versionstring))
-				Thaliz_Echo(string.format("NOTE: Go to %s to download latest version.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
+				Thaliz_Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
 			end
 		end
 	end
