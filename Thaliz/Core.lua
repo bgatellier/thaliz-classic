@@ -97,7 +97,6 @@ local Thaliz_Blacklist_Spellcast = 10;
 local Thaliz_Blacklist_Resurrect = 30;
 local Thaliz_Blacklist_Timeout = Thaliz_Blacklist_Spellcast + Thaliz_Blacklist_Resurrect;
 
-local Thaliz_Enabled = true;
 local ThalizDoScanRaid = true;
 local ThalizScanFrequency = 0.2;		-- Scan 5 times per second
 
@@ -183,8 +182,8 @@ local function Thaliz_GetOptions()
 		type = "group",
 		childGroups = "tab",
 		args = {
-			resurrectionMessages = {
-				name = "Resurrection messages",
+			warnPeople = {
+				name = "Warn people",
 				type = "group",
 				order = 1,
 				cmdHidden = true,
@@ -193,30 +192,50 @@ local function Thaliz_GetOptions()
 						name = "Enabled",
 						type = "toggle",
 						order = 1,
-						width = "full",
-						set = function (info, value) Thaliz_Enabled = not Thaliz_Enabled end,
-						get = function (value) return Thaliz_Enabled end,
+						set = function (info, value)
+							if value then
+								-- Assume the default value "RAID" if checked
+								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "RAID")
+							else
+								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "NONE")
+							end
+						end,
+						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) ~= "NONE" end,
 					},
 					channel = {
 						name = "Target channel",
 						desc = "Channel where the  messages will be send",
 						type = "select",
-						values = { NONE = "None", RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
+						values = { RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
 						order = 2,
 						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
 						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
 					},
+					includeDefaults = {
+						name = "Include Defaults in filtered messages",
+						type = "toggle",
+						order = 3,
+						width = "full",
+						set = function (info, value)
+							if value then
+								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1)
+							else
+								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0)
+							end
+						end,
+						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 end,
+					},
 					messages = {
 						name = "Messages",
 						type = "group",
-						order = 3,
+						order = 4,
 						args = {},
 					},
 					addMessage = {
 						name = "Add a new message",
 						usage = "Once your message has been added, you can change its group and group value.",
 						type = "input",
-						order = 4,
+						order = -1,
 						width = "full",
 						set = function (info, value)
 							local messageQty = table.getn(Thaliz_GetResurrectionMessages())
@@ -227,44 +246,20 @@ local function Thaliz_GetOptions()
 
 							local message = Thaliz_GetResurrectionMessage(index)
 
-							info.options.args.resurrectionMessages.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
+							info.options.args.warnPeople.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
 						end,
 					},
-					includeDefaults = {
-						name = "Include Defaults in filtered messages",
-						type = "toggle",
-						order = -1,
-						width = "full",
-						set = function (info, value)
-							if value then
-								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1)
-							else
-								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0)
-							end
-						end,
-						get = function (value)
-							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup)
-
-							if characterBasedSettingsValue == 1 then
-								return true
-							else
-								return false
-							end
-						end,
-					}
 				},
 			},
 			targetWhisper = {
-				name = "Target whisper",
+				name = "Whisp the target",
 				type = "group",
 				order = 2,
-				cmdHidden = true,
 				args = {
 					targetWhisperEnabled = {
 						name = "Enabled",
 						type = "toggle",
 						order = 1,
-						width = "full",
 						set = function (info, value)
 							if value then
 								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 1)
@@ -272,15 +267,7 @@ local function Thaliz_GetOptions()
 								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 0)
 							end
 						end,
-						get = function (value)
-							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper)
-
-							if characterBasedSettingsValue == 1 then
-								return true
-							else
-								return false
-							end
-						end,
+						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 end,
 					},
 					targetWhisperMessage = {
 						name = "Message",
@@ -310,15 +297,7 @@ local function Thaliz_GetOptions()
 								Thaliz_SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Realm")
 							end
 						end,
-						get = function (value)
-							local characterBasedSettingsValue = Thaliz_GetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings)
-
-							if characterBasedSettingsValue == "Character" then
-								return true
-							else
-								return false
-							end
-						end,
+						get = function (value) return Thaliz_GetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings) == "Character" end,
 					},
 				},
 			},
@@ -391,7 +370,7 @@ local function Thaliz_GetOptions()
 	for index in ipairs(messages) do
 		local messageGroupOption = Thaliz:createMessageGroupOption(index)
 
-		options.args.resurrectionMessages.args.messages.args["message" .. index] = messageGroupOption
+		options.args.warnPeople.args.messages.args["message" .. index] = messageGroupOption
 	end
 
 	return options
@@ -450,11 +429,7 @@ function Thaliz:createMessageGroupOption(index)
 					Thaliz_SetResurrectionMessage(index, 3, "")
 
 					-- Enable/disable the groupValue option
-					if (value == EMOTE_GROUP_DEFAULT) then
-						info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.groupValue.disabled = true
-					else
-						info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.groupValue.disabled = false
-					end
+					info.options.args.warnPeople.args.messages.args["message" .. index].args.groupValue.disabled = (value == EMOTE_GROUP_DEFAULT)
 				end,
 				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
 			},
@@ -470,7 +445,7 @@ function Thaliz:createMessageGroupOption(index)
 				order = 3,
 				width = "full",
 				set = function (info, value)
-					local group = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
+					local group = info.options.args.warnPeople.args.messages.args["message" .. index].args.group.get()
 
 					-- Allow both "nightelf" and "night elf".
 					-- This weird construction ensures all are shown with capital first letter.
@@ -487,7 +462,7 @@ function Thaliz:createMessageGroupOption(index)
 				validate = function (info, value)
 					local allowedValues = {}
 					local standardizedInput = value
-					local selectedGroup = info.options.args.resurrectionMessages.args.messages.args["message" .. index].args.group.get()
+					local selectedGroup = info.options.args.warnPeople.args.messages.args["message" .. index].args.group.get()
 
 					if (selectedGroup == EMOTE_GROUP_CLASS) then
 						allowedValues = groupClassesAllowed
@@ -539,7 +514,7 @@ function Thaliz:createMessageGroupOption(index)
 					Thaliz_DeleteResurrectionMessage(index)
 
 					-- Remove from the options / GUI
-					info.options.args.resurrectionMessages.args.messages.args["message" .. index] = nil
+					info.options.args.warnPeople.args.messages.args["message" .. index] = nil
 				end,
 			}
 		},
@@ -558,7 +533,6 @@ function Thaliz:OnInitialize()
 	C_ChatInfo.RegisterAddonMessagePrefix(THALIZ_MESSAGE_PREFIX)
 
 	Thaliz_InitClassSpecificStuff();
-
 
 	Thaliz_RepositionateButton(RezButton);
 
@@ -899,8 +873,7 @@ end
 --
 --  *******************************************************
 function Thaliz_AnnounceResurrection(playername, unitid)
-
-	if not Thaliz_Enabled then
+	if (Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "NONE" and Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) == 0) then
 		return;
 	end
 
