@@ -12,6 +12,13 @@ Please see the ReadMe.txt for addon details.
 ]]
 
 local THALIZ_NAME							= "Thaliz"
+
+
+-- Create the AceAddon instance
+Thaliz = LibStub("AceAddon-3.0"):NewAddon(THALIZ_NAME, "AceConsole-3.0", "AceEvent-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale(THALIZ_NAME, true)
+
+
 local PARTY_CHANNEL							= "PARTY"
 local RAID_CHANNEL							= "RAID"
 local YELL_CHANNEL							= "YELL"
@@ -152,11 +159,6 @@ local Thaliz_DefaultResurrectionMessages = {
 	{ "(Ressing) No more play, %s?",									EMOTE_GROUP_DEFAULT, "" },	-- Patchwerk
 	{ "(Ressing) %s, you are too late... I... must... OBEY!",			EMOTE_GROUP_DEFAULT, "" } 	-- Thaddius
 }
-
-
--- Create the AceAddon instance
-Thaliz = LibStub("AceAddon-3.0"):NewAddon(THALIZ_NAME, "AceConsole-3.0", "AceEvent-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(THALIZ_NAME, true)
 
 
 -- Checks if a value (v) is in a numeric table (t)
@@ -344,9 +346,10 @@ local function Thaliz_GetOptions()
 					},
 					repository = {
 						type = "description",
-						name = string.format("\nGo to %s to download latest version", GetAddOnMetadata(THALIZ_NAME, "X-Website")),
+						-- |Hurl:%s|h%s|h
+						name = string.format("\nGo to |Hurl:%s|h%s|h to download latest version", GetAddOnMetadata(THALIZ_NAME, "X-Website"), GetAddOnMetadata(THALIZ_NAME, "X-Website")),
 						fontSize = "medium",
-						order = 3,
+						order = 4,
 					},
 				},
 			},
@@ -384,7 +387,7 @@ local function Thaliz_GetOptions()
 					if IsInRaid() or Thaliz_IsInParty() then
 						Thaliz_SendAddonMessage("TX_VERSION##")
 					else
-						Thaliz_Echo(string.format("Thaliz version %s by %s.", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
+						Thaliz_Echo(string.format("Thaliz version %s by %s.", "a", "a"))
 					end
 				end
 			},
@@ -1023,7 +1026,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 		validCount = 1
 	end
 
-	local message = validMessages[ random(validCount) ]
+	local message = validMessages[ math.random(validCount) ]
 	message = string.gsub(message, "%%c", Thaliz_UCFirst(classname))
 	message = string.gsub(message, "%%r", Thaliz_UCFirst(race))
 	message = string.gsub(message, "%%g", guildname)
@@ -1291,7 +1294,7 @@ function Thaliz_ScanRaid()
 
 			-- Add a random decimal factor to priority to spread ressings out.
 			-- Random is a float between 0 and 1:
-			targetprio = targetprio + random()
+			targetprio = targetprio + math.random()
 
 			--echo(string.format("%s added, unitid=%s, priority=%f", playername, unitid, targetprio))
 			corpseTable[ table.getn(corpseTable) + 1 ] = { unitid, targetprio } 
@@ -1603,7 +1606,7 @@ function Thalix_CheckIsNewVersion(versionstring)
 			if not THALIZ_UPDATE_MESSAGE_SHOWN then
 				THALIZ_UPDATE_MESSAGE_SHOWN = true
 				Thaliz_Echo(string.format("NOTE: A newer version of ".. COLOUR_INTRO .."THALIZ"..COLOUR_CHAT.."! is available (version %s)!", versionstring))
-				Thaliz_Echo(styring.format("NOTE: Go to %s to download latest version.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
+				Thaliz_Echo(string.format("NOTE: Go to %s to download latest version.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
 			end
 		end
 	end
