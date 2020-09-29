@@ -2,6 +2,7 @@
 ## Notes: Smart addon to handle ressing party / raid members
 ## Version: 0.6.0a1
 ## Author: Mimma<EU-Pyrewood Village>, Camarde<EU-Auberdine>
+## X-Website: http://www.wowace.com/addons/bartender4/
 ## Interface: 11305
 ## SavedVariables: Thaliz_Options
 
