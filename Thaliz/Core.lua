@@ -18,17 +18,12 @@ local PARTY_CHANNEL							= "PARTY"
 local RAID_CHANNEL							= "RAID"
 local YELL_CHANNEL							= "YELL"
 local SAY_CHANNEL							= "SAY"
-local WARN_CHANNEL							= "RAID_WARNING"
-local GUILD_CHANNEL							= "GUILD"
 local CHAT_END								= "|r"
 local COLOUR_BEGINMARK						= "|c80"
 local COLOUR_CHAT							= COLOUR_BEGINMARK.."40A0F8"
 local COLOUR_INTRO							= COLOUR_BEGINMARK.."B040F0"
 local THALIZ_NAME							= "Thaliz"
-local THALIZ_TITAN_TITLE					= "Thaliz - Ress dem deads!"
 local THALIZ_MESSAGE_PREFIX					= "Thalizv1"
-local CTRA_PREFIX							= "CTRA"
-local THALIZ_MAX_MESSAGES					= 200
 local THALIZ_MAX_VISIBLE_MESSAGES			= 20
 local THALIZ_EMPTY_MESSAGE					= "(Empty)"
 
@@ -103,7 +98,6 @@ local Thaliz_Blacklist_Resurrect = 30;
 local Thaliz_Blacklist_Timeout = Thaliz_Blacklist_Spellcast + Thaliz_Blacklist_Resurrect;
 
 local Thaliz_Enabled = true;
-local ThalizConfigDialogOpen = false;
 local ThalizDoScanRaid = true;
 local ThalizScanFrequency = 0.2;		-- Scan 5 times per second
 
