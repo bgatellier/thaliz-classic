@@ -20,7 +20,7 @@ L["Default Messages"] = {
 	-- MC
 	"(Ressing) Vous avez sans doute besoin que je vous inflige quelques douleurs supplémentaires, %s !"	 ,	-- Chambellan Executus
 	"(Ressing) Top tôt, %s ! Tu es mort trop tôt !"									                     ,	-- Ragnaros
-	"(Ressing) Vous m'avez trahi, %s ! Justice sera faite, en vérité !"									 , -- Ragnaros
+	"(Ressing) Vous m'avez trahi, %s ! Justice sera faite, en vérité !"									 ,	-- Ragnaros
 	-- BWL
 	"(Ressing) Pardonnez-moi, %s ! Votre mort ne fait qu'ajouter à mon échec !"						     ,	-- Vaelastrasz le Corrompu
 	-- AQ40

@@ -12,15 +12,15 @@ L["Default Messages"] = {
 	-- UBRS
 	"(Ressing) THIS CANNOT BE!!! %s, deal with these insects!"         ,	-- Lord Victor Nefarius
 	-- ZG
-	"(Ressing) %s! I'm watching you!"									 ,	-- Bloodlord Mandokir
+	"(Ressing) %s! I'm watching you!"								   ,	-- Bloodlord Mandokir
 	"(Ressing) %s, fill me with your RAGE!"                            ,	-- High Priest Thekal
 	"(Ressing) Fleeing will do you no good, %s!"                       ,	-- Hakkar
 	-- AQ20
-	"(Ressing) Master %c %s, continue the fight!"                      	 ,	-- General Rajaxx
+	"(Ressing) Master %c %s, continue the fight!"                      ,	-- General Rajaxx
 	-- MC
 	"(Ressing) Perhaps you'll need another lesson in pain, %s!"        ,	-- Majordomo Executus
 	"(Ressing) Too soon, %s - you have died too soon!"                 ,	-- Ragnaros
-	"(Ressing) You have failed me, %s! Justice shall be met, indeed!"  , -- Ragnaros
+	"(Ressing) You have failed me, %s! Justice shall be met, indeed!"  ,	-- Ragnaros
 	-- BWL
 	"(Ressing) Forgive me %s! Your death only adds to my failure!"     ,	-- Vaelastrasz the Corrupt
 	-- AQ40
