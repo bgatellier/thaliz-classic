@@ -16,7 +16,7 @@ L["Default Messages"] = {
 	"(Ressing) %s, fill me with your RAGE!"                            ,	-- High Priest Thekal
 	"(Ressing) Fleeing will do you no good, %s!"                       ,	-- Hakkar
 	-- AQ20
-	"(Ressing) Master %c %s, continue the fight!"                      	 ,	-- General Rajaxx
+	"(Ressing) Master %c %s, continue the fight!"                      ,	-- General Rajaxx
 	-- MC
 	"(Ressing) Perhaps you'll need another lesson in pain, %s!"        ,	-- Majordomo Executus
 	"(Ressing) Too soon, %s - you have died too soon!"                 ,	-- Ragnaros
