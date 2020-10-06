@@ -11,5 +11,12 @@ embeds.xml
 
 Locales\Locales.xml
 
+## Core ##
 Core.lua
 Core.xml
+
+## Global variables ##
+Globals.lua
+
+## Options ##
+Options.lua
