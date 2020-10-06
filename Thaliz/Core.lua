@@ -150,14 +150,160 @@ local function inNumericTable(v, t)
 end
 
 local function isWarnPeopleDisabled()
-	return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "NONE"
+	return Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "NONE"
 end
 
 local function isTargetWhisperDisabled()
-	return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 0
+	return Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 0
 end
 
-local function Thaliz_GetOptions()
+
+local function CreateMessageGroupOption(index)
+	local groupClassesAllowed = { "Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior" }
+	local groupRacesAllowed = { "Dwarf", "Gnome", "Human", "Night elf", "Orc", "Tauren", "Troll", "Undead" }
+
+	return {
+		name = function (info)
+			local message = Thaliz:GetResurrectionMessage(index)
+
+			local group = message[2]
+			local groupValue = message[3]
+			local rgbColor = "ff808080"
+
+			if (group == EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
+			elseif (group == EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
+			elseif (group == EMOTE_GROUP_CLASS and RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
+			elseif (group == EMOTE_GROUP_RACE) then
+				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
+				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
+				else rgbColor = "ffcc00ff"
+				end
+			end
+
+			return "|c" .. rgbColor .. message[1]
+		end,
+		type = "group",
+		order = index,
+		args = {
+			message = {
+				name = "Message",
+				type = "input",
+				order = 1,
+				width = "full",
+				set = function (info, value) Thaliz:SetResurrectionMessage(index, 1, value) end,
+				get = function (value) return Thaliz:GetResurrectionMessage(index)[1] end,
+			},
+			group = {
+				name = "Use it for",
+				type = "select",
+				order = 2,
+				values = {
+					[EMOTE_GROUP_DEFAULT] = "Everyone",
+					[EMOTE_GROUP_GUILD] = "a Guild",
+					[EMOTE_GROUP_CHARACTER] = "a Character",
+					[EMOTE_GROUP_CLASS] = "a Class",
+					[EMOTE_GROUP_RACE] = "a Race",
+				},
+				set = function (info, value)
+					Thaliz:SetResurrectionMessage(index, 2, value)
+
+					-- Reset the value of the groupValue option
+					Thaliz:SetResurrectionMessage(index, 3, "")
+
+					-- Enable/disable the groupValue option
+					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == EMOTE_GROUP_DEFAULT)
+				end,
+				get = function (value) return Thaliz:GetResurrectionMessage(index)[2] end,
+			},
+			groupValue = {
+				name = "who/which is",
+				desc = "For the class or race selector use the english language (e.g. hunter, dwarf...",
+				type = "input",
+				disabled = function ()
+					local message = Thaliz:GetResurrectionMessage(index)
+
+					return message[2] == EMOTE_GROUP_DEFAULT
+				end,
+				order = 3,
+				width = "full",
+				set = function (info, value)
+					local group = info.options.args.public.args.messages.args["message" .. index].args.group.get()
+
+					-- Allow both "nightelf" and "night elf".
+					-- This weird construction ensures all are shown with capital first letter.
+					if (group == EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
+						value = "night elf"
+					end
+
+					if group == EMOTE_GROUP_CHARACTER or group == EMOTE_GROUP_CLASS or group == EMOTE_GROUP_RACE then
+						value = Thaliz_UCFirst(value)
+					end
+
+					Thaliz:SetResurrectionMessage(index, 3, value)
+				end,
+				validate = function (info, value)
+					local allowedValues = {}
+					local standardizedInput = value
+					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
+
+					if (selectedGroup == EMOTE_GROUP_CLASS) then
+						allowedValues = groupClassesAllowed
+						standardizedInput = Thaliz_UCFirst(standardizedInput)
+					elseif (selectedGroup == EMOTE_GROUP_RACE) then
+						allowedValues = groupRacesAllowed
+
+						-- Allow both "nightelf" and "night elf".
+						-- This weird construction ensures all are shown with capital first letter.
+						if string.upper(standardizedInput) == "NIGHTELF" or string.upper(standardizedInput) == "NIGHT ELF" then
+							standardizedInput = "night elf"
+						end
+
+						standardizedInput = Thaliz_UCFirst(standardizedInput)
+					end
+
+					local allowedValuesQty = table.getn(allowedValues)
+
+					-- Nothing to validate: returns validation OK
+					if (allowedValuesQty == 0) then return true end
+
+					local isValidInput = inNumericTable(standardizedInput, allowedValues)
+
+					-- Input is valid: returns validation OK
+					if (isValidInput) then return true end
+
+					-- Input is invalid: build and returns the error message
+					local error = "The value must be one of: "
+
+					for k, allowedValue in ipairs(allowedValues) do
+						error = error .. allowedValue
+
+						if (k < allowedValuesQty) then
+							error = error .. ", "
+						else
+							error = error .. "."
+						end
+					end
+
+					return error
+				end,
+				get = function (value) return Thaliz:GetResurrectionMessage(index)[3] end,
+			},
+			delete = {
+				name = "Delete this message",
+				type = "execute",
+				func = function (info)
+					-- Remove from the memory
+					Thaliz:DeleteResurrectionMessage(index)
+
+					-- Remove from the options / GUI
+					info.options.args.public.args.messages.args["message" .. index] = nil
+				end,
+			}
+		},
+	}
+end
+
+local function GetOptions()
 	local options =  {
 		type = "group",
 		childGroups = "tab",
@@ -175,12 +321,12 @@ local function Thaliz_GetOptions()
 						set = function (info, value)
 							if value then
 								-- Assume the default value "RAID" if checked
-								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "RAID")
+								Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "RAID")
 							else
-								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "NONE")
+								Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, "NONE")
 							end
 						end,
-						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) ~= "NONE" end,
+						get = function (value) return Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) ~= "NONE" end,
 					},
 					channel = {
 						name = "Broadcast channel",
@@ -189,8 +335,8 @@ local function Thaliz_GetOptions()
 						order = 2,
 						width = "normal",
 						hidden = isWarnPeopleDisabled,
-						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
-						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
+						set = function (info, value) Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, value) end,
+						get = function (value) return Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) end,
 					},
 					includeEveryone = {
 						name = "Add messages for everyone to the list of targeted messages",
@@ -200,12 +346,12 @@ local function Thaliz_GetOptions()
 						hidden = isWarnPeopleDisabled,
 						set = function (info, value)
 							if value then
-								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1)
+								Thaliz:SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 1)
 							else
-								Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0)
+								Thaliz:SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, 0)
 							end
 						end,
-						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 end,
+						get = function (value) return Thaliz:GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 end,
 					},
 					messages = {
 						name = "Messages",
@@ -222,13 +368,13 @@ local function Thaliz_GetOptions()
 						width = "full",
 						hidden = isWarnPeopleDisabled,
 						set = function (info, value)
-							local messageQty = table.getn(Thaliz_GetResurrectionMessages())
+							local messageQty = table.getn(Thaliz:GetResurrectionMessages())
 
 							local index = messageQty + 1
 
-							Thaliz_UpdateResurrectionMessage(index, 0, value)
+							Thaliz:UpdateResurrectionMessage(index, 0, value)
 
-							local message = Thaliz_GetResurrectionMessage(index)
+							local message = Thaliz:GetResurrectionMessage(index)
 
 							info.options.args.public.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
 						end,
@@ -246,12 +392,12 @@ local function Thaliz_GetOptions()
 						order = 1,
 						set = function (info, value)
 							if value then
-								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 1)
+								Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 1)
 							else
-								Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 0)
+								Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, 0)
 							end
 						end,
-						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 end,
+						get = function (value) return Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 end,
 					},
 					message = {
 						name = "Message",
@@ -259,8 +405,8 @@ local function Thaliz_GetOptions()
 						order = 2,
 						width = "full",
 						hidden = isTargetWhisperDisabled,
-						set = function (info, value) Thaliz_SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, value) end,
-						get = function (value) return Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) end,
+						set = function (info, value) Thaliz:SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, value) end,
+						get = function (value) return Thaliz:GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) end,
 					},
 				},
 			},
@@ -277,12 +423,12 @@ local function Thaliz_GetOptions()
 						width = "full",
 						set = function (info, value)
 							if value then
-								Thaliz_SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Character")
+								Thaliz:SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Character")
 							else
-								Thaliz_SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Realm")
+								Thaliz:SetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, "Realm")
 							end
 						end,
-						get = function (value) return Thaliz_GetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings) == "Character" end,
+						get = function (value) return Thaliz:GetOption(Thaliz_ROOT_OPTION_CharacterBasedSettings) == "Character" end,
 					},
 				},
 			},
@@ -333,11 +479,11 @@ local function Thaliz_GetOptions()
 				hidden = true,
 				set = function (info, value)
 					if value and value ~= '' then
-						Thaliz_Echo(string.format("Enabling debug for %s", value))
+						Thaliz:Echo(string.format("Enabling debug for %s", value))
 						ThalizScanFrequency = 1.0
 						Thaliz_DebugFunction = value
 					else
-						Thaliz_Echo("Disabling debug")
+						Thaliz:Echo("Disabling debug")
 						ThalizScanFrequency = 0.2
 						Thaliz_DebugFunction = nil
 					end
@@ -349,8 +495,8 @@ local function Thaliz_GetOptions()
 				type = "execute",
 				guiHidden = true,
 				func = function()
-					if IsInRaid() or Thaliz_IsInParty() then
-						Thaliz_SendAddonMessage("TX_VERSION##")
+					if IsInRaid() or Thaliz:IsInParty() then
+						Thaliz:SendAddonMessage("TX_VERSION##")
 					else
 						Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
 					end
@@ -360,9 +506,9 @@ local function Thaliz_GetOptions()
 	}
 
 	-- Populate the resurrection messages box
-	local messages = Thaliz_GetResurrectionMessages()
+	local messages = Thaliz:GetResurrectionMessages()
 	for index in ipairs(messages) do
-		local messageGroupOption = Thaliz:createMessageGroupOption(index)
+		local messageGroupOption = CreateMessageGroupOption(index)
 
 		options.args.public.args.messages.args["message" .. index] = messageGroupOption
 	end
@@ -370,156 +516,11 @@ local function Thaliz_GetOptions()
 	return options
 end
 
-function Thaliz:createMessageGroupOption(index)
-	local groupClassesAllowed = { "Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior" }
-	local groupRacesAllowed = { "Dwarf", "Gnome", "Human", "Night elf", "Orc", "Tauren", "Troll", "Undead" }
-
-	return {
-		name = function (info)
-			local message = Thaliz_GetResurrectionMessage(index)
-
-			local group = message[2]
-			local groupValue = message[3]
-			local rgbColor = "ff808080"
-
-			if (group == EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
-			elseif (group == EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
-			elseif (group == EMOTE_GROUP_CLASS and RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
-			elseif (group == EMOTE_GROUP_RACE) then
-				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
-				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
-				else rgbColor = "ffcc00ff"
-				end
-			end
-
-			return "|c" .. rgbColor .. message[1]
-		end,
-		type = "group",
-		order = index,
-		args = {
-			message = {
-				name = "Message",
-				type = "input",
-				order = 1,
-				width = "full",
-				set = function (info, value) Thaliz_SetResurrectionMessage(index, 1, value) end,
-				get = function (value) return Thaliz_GetResurrectionMessage(index)[1] end,
-			},
-			group = {
-				name = "Use it for",
-				type = "select",
-				order = 2,
-				values = {
-					[EMOTE_GROUP_DEFAULT] = "Everyone",
-					[EMOTE_GROUP_GUILD] = "a Guild",
-					[EMOTE_GROUP_CHARACTER] = "a Character",
-					[EMOTE_GROUP_CLASS] = "a Class",
-					[EMOTE_GROUP_RACE] = "a Race",
-				},
-				set = function (info, value)
-					Thaliz_SetResurrectionMessage(index, 2, value)
-
-					-- Reset the value of the groupValue option
-					Thaliz_SetResurrectionMessage(index, 3, "")
-
-					-- Enable/disable the groupValue option
-					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == EMOTE_GROUP_DEFAULT)
-				end,
-				get = function (value) return Thaliz_GetResurrectionMessage(index)[2] end,
-			},
-			groupValue = {
-				name = "who/which is",
-				desc = "For the class or race selector use the english language (e.g. hunter, dwarf...",
-				type = "input",
-				disabled = function ()
-					local message = Thaliz_GetResurrectionMessage(index)
-
-					return message[2] == EMOTE_GROUP_DEFAULT
-				end,
-				order = 3,
-				width = "full",
-				set = function (info, value)
-					local group = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					-- Allow both "nightelf" and "night elf".
-					-- This weird construction ensures all are shown with capital first letter.
-					if (group == EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
-						value = "night elf"
-					end
-
-					if group == EMOTE_GROUP_CHARACTER or group == EMOTE_GROUP_CLASS or group == EMOTE_GROUP_RACE then
-						value = Thaliz_UCFirst(value)
-					end
-
-					Thaliz_SetResurrectionMessage(index, 3, value)
-				end,
-				validate = function (info, value)
-					local allowedValues = {}
-					local standardizedInput = value
-					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					if (selectedGroup == EMOTE_GROUP_CLASS) then
-						allowedValues = groupClassesAllowed
-						standardizedInput = Thaliz_UCFirst(standardizedInput)
-					elseif (selectedGroup == EMOTE_GROUP_RACE) then
-						allowedValues = groupRacesAllowed
-
-						-- Allow both "nightelf" and "night elf".
-						-- This weird construction ensures all are shown with capital first letter.
-						if string.upper(standardizedInput) == "NIGHTELF" or string.upper(standardizedInput) == "NIGHT ELF" then
-							standardizedInput = "night elf"
-						end
-
-						standardizedInput = Thaliz_UCFirst(standardizedInput)
-					end
-
-					local allowedValuesQty = table.getn(allowedValues)
-
-					-- Nothing to validate: returns validation OK
-					if (allowedValuesQty == 0) then return true end
-
-					local isValidInput = inNumericTable(standardizedInput, allowedValues)
-
-					-- Input is valid: returns validation OK
-					if (isValidInput) then return true end
-
-					-- Input is invalid: build and returns the error message
-					local error = "The value must be one of: "
-
-					for k, allowedValue in ipairs(allowedValues) do
-						error = error .. allowedValue
-
-						if (k < allowedValuesQty) then
-							error = error .. ", "
-						else
-							error = error .. "."
-						end
-					end
-
-					return error
-				end,
-				get = function (value) return Thaliz_GetResurrectionMessage(index)[3] end,
-			},
-			delete = {
-				name = "Delete this message",
-				type = "execute",
-				func = function (info)
-					-- Remove from the memory
-					Thaliz_DeleteResurrectionMessage(index)
-
-					-- Remove from the options / GUI
-					info.options.args.public.args.messages.args["message" .. index] = nil
-				end,
-			}
-		},
-	}
-end
-
 
 function Thaliz:OnInitialize()
 	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata(THALIZ_NAME, "Version") )
 
-	Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
+	Thaliz:Echo(string.format("version %s by %s", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
 
 	Thaliz:RegisterEvents()
 	Thaliz:RegisterOnUpdate()
@@ -532,7 +533,7 @@ function Thaliz:OnInitialize()
 
 	Thaliz_InitializeConfigSettings()
 
-	LibStub("AceConfig-3.0"):RegisterOptionsTable(THALIZ_NAME, Thaliz_GetOptions(), { "thaliz" })
+	LibStub("AceConfig-3.0"):RegisterOptionsTable(THALIZ_NAME, GetOptions(), { "thaliz" })
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(THALIZ_NAME)
 end
 
@@ -560,7 +561,7 @@ end
 local function partyEcho(msg)
 	if IsInRaid() then
 		SendChatMessage(msg, RAID_CHANNEL)
-	elseif Thaliz_IsInParty() then
+	elseif Thaliz:IsInParty() then
 		SendChatMessage(msg, PARTY_CHANNEL)
 	end
 end
@@ -568,7 +569,7 @@ end
 --[[
 	Echo a message for the local user only, including Thaliz "logo"
 ]]
-function Thaliz_Echo(msg)
+function Thaliz:Echo(msg)
 	echo("<"..COLOUR_INTRO.."THALIZ"..COLOUR_CHAT.."> "..msg)
 end
 
@@ -584,7 +585,7 @@ end
 -- 
 function Thaliz_RefreshVisibleMessageList(offset)
 --	echo(string.format("Thaliz_RefreshVisibleMessageList: Offset=%d", offset))
-	local macros = Thaliz_GetResurrectionMessages()
+	local macros = Thaliz:GetResurrectionMessages()
 
 	-- Set a priority on each spell, and then sort them accordingly:
 	local macro, grp, prm, prio
@@ -724,7 +725,7 @@ function Thaliz_SetRootOption(parameter, value)
 	Thaliz_Options[parameter] = value
 end
 
-function Thaliz_GetOption(parameter, defaultValue)
+function Thaliz:GetOption(parameter, defaultValue)
 	local realmname = GetRealmName()
 	local playername = UnitName("player")
 
@@ -755,7 +756,7 @@ function Thaliz_GetOption(parameter, defaultValue)
 	return defaultValue
 end
 
-function Thaliz_SetOption(parameter, value)
+function Thaliz:SetOption(parameter, value)
 	local realmname = GetRealmName()
 	local playername = UnitName("player")
 
@@ -788,20 +789,20 @@ function Thaliz_InitializeConfigSettings()
 	Thaliz_SetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, Thaliz_GetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, Thaliz_Configuration_Default_Level))
 	Thaliz_ConfigurationLevel = Thaliz_GetRootOption(Thaliz_ROOT_OPTION_CharacterBasedSettings, Thaliz_Configuration_Default_Level)
 
-	Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, Thaliz_Target_Channel_Default))
-	Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, Thaliz_Target_Whisper_Default))
-	Thaliz_SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage, Thaliz_Resurrection_Whisper_Message_Default))
-	Thaliz_SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, Thaliz_Include_Default_Group_Default))
+	Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel, Thaliz_Target_Channel_Default))
+	Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper, Thaliz_Target_Whisper_Default))
+	Thaliz:SetOption(Thaliz_OPTION_ResurrectionWhisperMessage, Thaliz:GetOption(Thaliz_OPTION_ResurrectionWhisperMessage, Thaliz_Resurrection_Whisper_Message_Default))
+	Thaliz:SetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, Thaliz:GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup, Thaliz_Include_Default_Group_Default))
 
 	local x,y = RezButton:GetPoint()
-	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosX, Thaliz_GetOption(Thaliz_OPTION_RezButtonPosX, x))
-	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosY, Thaliz_GetOption(Thaliz_OPTION_RezButtonPosY, y))
+	Thaliz:SetOption(Thaliz_OPTION_RezButtonPosX, Thaliz:GetOption(Thaliz_OPTION_RezButtonPosX, x))
+	Thaliz:SetOption(Thaliz_OPTION_RezButtonPosY, Thaliz:GetOption(Thaliz_OPTION_RezButtonPosY, y))
 
 	Thaliz_ValidateResurrectionMessages()
 end
 
 function Thaliz_ValidateResurrectionMessages()
-	local macros = Thaliz_GetResurrectionMessages()
+	local macros = Thaliz:GetResurrectionMessages()
 	local changed = false
 
 	for n=1, table.getn( macros ), 1 do
@@ -817,7 +818,7 @@ function Thaliz_ValidateResurrectionMessages()
 	end
 
 	if changed then
-		Thaliz_SetResurrectionMessages(macros)
+		Thaliz:SetResurrectionMessages(macros)
 	end
 end
 
@@ -867,7 +868,7 @@ end
 --
 --  *******************************************************
 function Thaliz_AnnounceResurrection(playername, unitid)
-	if (Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "NONE" and Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) == 0) then
+	if (Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel) == "NONE" and Thaliz:GetOption(Thaliz_OPTION_ResurrectionWhisperMessage) == 0) then
 		return
 	end
 
@@ -909,7 +910,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	local cidx = 0
 	local ridx = 0
 
-	local macros = Thaliz_GetResurrectionMessages()
+	local macros = Thaliz:GetResurrectionMessages()
 	for n=1, table.getn( macros ), 1 do
 		local macro = macros[n]
 		local param = ""
@@ -967,7 +968,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	-- * There is no messages matching the group rule, or
 	-- * The "Add messages for everyone to the list of targeted messages" option is selected.
 	if table.getn(macros) == 0 or
-		Thaliz_GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 then
+		Thaliz:GetOption(Thaliz_OPTION_AlwaysIncludeDefaultGroup) == 1 then
 		for n=1, table.getn( dmacro ), 1 do
 			index = index + 1
 			macros[index] = dmacro[n]
@@ -997,7 +998,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	message = string.gsub(message, "%%g", guildname)
 	message = string.gsub(message, "%%s", playername)
 
-	local targetChannel = Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel)
+	local targetChannel = Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetChannel)
 
 	if not IsInInstance() then
 		if targetChannel == "SAY" or targetChannel == "YELL" then
@@ -1015,16 +1016,16 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 		echo(message)
 	end
 
-	if Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 then
-		local whisperMsg = Thaliz_GetOption(Thaliz_OPTION_ResurrectionWhisperMessage)
+	if Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessageTargetWhisper) == 1 then
+		local whisperMsg = Thaliz:GetOption(Thaliz_OPTION_ResurrectionWhisperMessage)
 		if whisperMsg and not(whisperMsg == "") then
 			SendChatMessage(whisperMsg, "WHISPER", nil, playername)
 		end
 	end
 end
 
-function Thaliz_GetResurrectionMessages()
-	local messages = Thaliz_GetOption(Thaliz_OPTION_ResurrectionMessages, nil)
+function Thaliz:GetResurrectionMessages()
+	local messages = Thaliz:GetOption(Thaliz_OPTION_ResurrectionMessages, nil)
 
 	if (not messages) or not(type(messages) == "table") or (table.getn(messages) == 0) then
 		messages = Thaliz_ResetResurrectionMessages()
@@ -1033,8 +1034,8 @@ function Thaliz_GetResurrectionMessages()
 	return messages
 end
 
-function Thaliz_GetResurrectionMessage(index)
-	local messages = Thaliz_GetResurrectionMessages()
+function Thaliz:GetResurrectionMessage(index)
+	local messages = Thaliz:GetResurrectionMessages()
 
 	return messages[index]
 end
@@ -1050,24 +1051,24 @@ function Thaliz_RenumberTable(sourcetable)
 	return temptable
 end
 
-function Thaliz_DeleteResurrectionMessage(index)
-	local messages = Thaliz_GetResurrectionMessages()
+function Thaliz:DeleteResurrectionMessage(index)
+	local messages = Thaliz:GetResurrectionMessages()
 
 	table.remove(messages, index)
 
-	Thaliz_SetResurrectionMessages(messages)
+	Thaliz:SetResurrectionMessages(messages)
 end
 
-function Thaliz_SetResurrectionMessages(resurrectionMessages)
-	Thaliz_SetOption(Thaliz_OPTION_ResurrectionMessages, Thaliz_RenumberTable(resurrectionMessages))
+function Thaliz:SetResurrectionMessages(resurrectionMessages)
+	Thaliz:SetOption(Thaliz_OPTION_ResurrectionMessages, Thaliz_RenumberTable(resurrectionMessages))
 end
 
-function Thaliz_SetResurrectionMessage(messageIndex, propertyIndex, value)
-	local messages = Thaliz_GetResurrectionMessages()
+function Thaliz:SetResurrectionMessage(messageIndex, propertyIndex, value)
+	local messages = Thaliz:GetResurrectionMessages()
 
 	messages[messageIndex][propertyIndex] = value
 
-	Thaliz_SetResurrectionMessages(messages)
+	Thaliz:SetResurrectionMessages(messages)
 end
 
 function Thaliz_ResetResurrectionMessages()
@@ -1077,9 +1078,9 @@ function Thaliz_ResetResurrectionMessages()
 		messages[key] = { message, EMOTE_GROUP_DEFAULT, "" }
 	end
 
-	Thaliz_SetResurrectionMessages( messages )
+	Thaliz:SetResurrectionMessages( messages )
 
-	return Thaliz_GetResurrectionMessages()
+	return Thaliz:GetResurrectionMessages()
 end
 
 function Thaliz_CheckMessage(msg)
@@ -1103,15 +1104,15 @@ function Thaliz_CheckGroupValue(param)
 	return param
 end
 
-function Thaliz_UpdateResurrectionMessage(index, offset, message, group, param)
+function Thaliz:UpdateResurrectionMessage(index, offset, message, group, param)
 	group = Thaliz_CheckGroup(group)
 	param = Thaliz_CheckGroupValue(param)
 	--echo(string.format("Updating message, Index=%d, offset=%d, msg=%s, grp=%s, val=%s", index, offset, message, group, param))
 
-	local messages = Thaliz_GetResurrectionMessages()
+	local messages = Thaliz:GetResurrectionMessages()
 	messages[index + offset] = { message, group, param }
 
-	Thaliz_SetResurrectionMessages( messages )
+	Thaliz:SetResurrectionMessages( messages )
 end
 
 
@@ -1321,7 +1322,7 @@ function Thaliz_BroadcastResurrection(self)
 
 	local playername = UnitName(unitid)
 
-	Thaliz_SendAddonMessage(string.format("TX_RESBEGIN#%s#", playername))
+	Thaliz:SendAddonMessage(string.format("TX_RESBEGIN#%s#", playername))
 end
 
 
@@ -1507,7 +1508,7 @@ function Thaliz_GetPlayerName(nameAndRealm)
 	return name
 end
 
-function Thaliz_IsInParty()
+function Thaliz:IsInParty()
 	if not IsInRaid() then
 		return ( GetNumGroupMembers() > 0 )
 	end
@@ -1550,9 +1551,9 @@ end
 ]]
 function Thaliz_OnRaidRosterUpdate(event, ...)
 	if THALIZ_CURRENT_VERSION > 0 and not THALIZ_UPDATE_MESSAGE_SHOWN then
-		if IsInRaid() or Thaliz_IsInParty() then
+		if IsInRaid() or Thaliz:IsInParty() then
 			local versionstring = GetAddOnMetadata(THALIZ_NAME, "Version")
-			Thaliz_SendAddonMessage(string.format("TX_VERCHECK#%s#", versionstring))
+			Thaliz:SendAddonMessage(string.format("TX_VERCHECK#%s#", versionstring))
 		end
 	end
 end
@@ -1576,8 +1577,8 @@ function Thalix_CheckIsNewVersion(versionstring)
 		if incomingVersion > THALIZ_CURRENT_VERSION then
 			if not THALIZ_UPDATE_MESSAGE_SHOWN then
 				THALIZ_UPDATE_MESSAGE_SHOWN = true
-				Thaliz_Echo(string.format("NOTE: A newer version of ".. COLOUR_INTRO .."THALIZ"..COLOUR_CHAT.."! is available (version %s)!", versionstring))
-				Thaliz_Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
+				Thaliz:Echo(string.format("NOTE: A newer version of ".. COLOUR_INTRO .."THALIZ"..COLOUR_CHAT.."! is available (version %s)!", versionstring))
+				Thaliz:Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
 			end
 		end
 	end
@@ -1633,13 +1634,13 @@ end
 --
 --  *******************************************************
 
-function Thaliz_SendAddonMessage(message)
+function Thaliz:SendAddonMessage(message)
 	local memberCount = GetNumGroupMembers()
 	if memberCount > 0 then
 		local channel = nil
 		if IsInRaid() then
 			channel = "RAID"
-		elseif Thaliz_IsInParty() then
+		elseif Thaliz:IsInParty() then
 			channel = "PARTY"
 		end
 		C_ChatInfo.SendAddonMessage(THALIZ_MESSAGE_PREFIX, message, channel)
@@ -1659,7 +1660,7 @@ end
 ]]
 function Thaliz_HandleTXVersion(message, sender)
 	local response = GetAddOnMetadata(THALIZ_NAME, "Version")
-	Thaliz_SendAddonMessage("RX_VERSION#"..response.."#"..sender)
+	Thaliz:SendAddonMessage("RX_VERSION#"..response.."#"..sender)
 end
 
 function Thaliz_HandleTXResBegin(message, sender)
@@ -1674,7 +1675,7 @@ end
 	A version response (RX) was received. The version information is displayed locally.
 ]]
 function Thaliz_HandleRXVersion(message, sender)
-	Thaliz_Echo(string.format("%s is using Thaliz version %s", sender, message))
+	Thaliz:Echo(string.format("%s is using Thaliz version %s", sender, message))
 end
 
 function Thaliz_HandleTXVerCheck(message, sender)
@@ -1893,6 +1894,6 @@ end
 function Thaliz_RepositionateButton(self)
 	local x, y = self:GetLeft(), self:GetTop() - UIParent:GetHeight()
 
-	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosX, x)
-	Thaliz_SetOption(Thaliz_OPTION_RezButtonPosY, y)
+	Thaliz:SetOption(Thaliz_OPTION_RezButtonPosX, x)
+	Thaliz:SetOption(Thaliz_OPTION_RezButtonPosY, y)
 end
