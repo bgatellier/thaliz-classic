@@ -15,8 +15,8 @@ Locales\Locales.xml
 Core.lua
 Core.xml
 
-## Global variables ##
-Globals.lua
+## Constants variables ##
+Constants.lua
 
 ## Options ##
 Options.lua

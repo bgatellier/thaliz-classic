@@ -68,7 +68,7 @@ function Thaliz:OnInitialize()
 	Thaliz:RegisterEvents()
 	Thaliz:RegisterOnUpdate()
 
-	C_ChatInfo.RegisterAddonMessagePrefix(_G["MESSAGE_PREFIX"])
+	C_ChatInfo.RegisterAddonMessagePrefix(Thaliz.constant.MESSAGE_PREFIX)
 
 	Thaliz_InitClassSpecificStuff()
 
@@ -93,7 +93,7 @@ end
 ]]
 local function echo(msg)
 	if msg then
-		DEFAULT_CHAT_FRAME:AddMessage(_G["COLOUR_CHAT"] .. msg .. _G["CHAT_END"])
+		DEFAULT_CHAT_FRAME:AddMessage(Thaliz.constant.COLOUR_CHAT .. msg .. Thaliz.constant.CHAT_END)
 	end
 end
 
@@ -102,9 +102,9 @@ end
 ]]
 local function partyEcho(msg)
 	if IsInRaid() then
-		SendChatMessage(msg, _G["RAID_CHANNEL"])
+		SendChatMessage(msg, Thaliz.constant.RAID_CHANNEL)
 	elseif Thaliz:IsInParty() then
-		SendChatMessage(msg, _G["PARTY_CHANNEL"])
+		SendChatMessage(msg, Thaliz.constant.PARTY_CHANNEL)
 	end
 end
 
@@ -112,7 +112,7 @@ end
 	Echo a message for the local user only, including Thaliz "logo"
 ]]
 function Thaliz:Echo(msg)
-	echo("<".._G["COLOUR_INTRO"].."THALIZ".._G["COLOUR_CHAT"].."> "..msg)
+	echo("<"..Thaliz.constant.COLOUR_INTRO.."THALIZ"..Thaliz.constant.COLOUR_CHAT.."> "..msg)
 end
 
 
@@ -134,11 +134,11 @@ function Thaliz_RefreshVisibleMessageList(offset)
 	for n=1, table.getn(macros), 1 do
 		grp = macros[n][2]
 		prm = macros[n][3]
-		if grp == _G["EMOTE_GROUP_GUILD"] then
+		if grp == Thaliz.constant.EMOTE_GROUP_GUILD then
 			prio = 20
-		elseif grp == _G["EMOTE_GROUP_CHARACTER"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_CHARACTER then
 			prio = 30
-		elseif grp == _G["EMOTE_GROUP_CLASS"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_CLASS then
 			-- Class names are listed alphabetically:
 			prio = 50
 			if prm == "Druid" then
@@ -160,7 +160,7 @@ function Thaliz_RefreshVisibleMessageList(offset)
 			elseif prm == "Warrior" then
 				prio = 51
 			end
-		elseif grp == _G["EMOTE_GROUP_RACE"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_RACE then
 			prio = 40
 			-- Racess are listed by faction, race name:
 			if prm == "Dwarf" then
@@ -180,7 +180,7 @@ function Thaliz_RefreshVisibleMessageList(offset)
 			elseif prm == "Undead" then
 				prio = 42
 			end
-		elseif grp == _G["EMOTE_GROUP_DEFAULT"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_DEFAULT then
 			prio = 0
 		end
 		macros[n][4] = prio
@@ -188,10 +188,10 @@ function Thaliz_RefreshVisibleMessageList(offset)
 
 	Thaliz_SortTableDescending(macros, 4)
 
-	for n=1, _G["MAX_VISIBLE_MESSAGES"], 1 do
+	for n=1, Thaliz.constant.MAX_VISIBLE_MESSAGES, 1 do
 		macro = macros[n + offset]
 		if not macro then
-			macro = { "", _G["EMOTE_GROUP_DEFAULT"], "" }
+			macro = { "", Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
 		end
 
 		local msg = Thaliz_CheckMessage(macro[1])
@@ -205,13 +205,13 @@ function Thaliz_RefreshVisibleMessageList(offset)
 
 		prm = string.upper(prm)
 
-		if grp == _G["EMOTE_GROUP_GUILD"] then
+		if grp == Thaliz.constant.EMOTE_GROUP_GUILD then
 			grpColor = { 0.0, 1.0, 0.0 }
 			prmColor = { 0.8, 0.8, 0.0 }
-		elseif grp == _G["EMOTE_GROUP_CHARACTER"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_CHARACTER then
 			grpColor = { 0.8, 0.8, 0.8 }
 			prmColor = { 0.8, 0.8, 0.0 }
-		elseif grp == _G["EMOTE_GROUP_CLASS"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_CLASS then
 			grpColor = { 0.8, 0.0, 1.0 }
 
 			if prm == "DRUID" then
@@ -233,7 +233,7 @@ function Thaliz_RefreshVisibleMessageList(offset)
 			elseif prm == "WARRIOR" then
 				prmColor = { 0.78, 0.61, 0.43 }
 			end
-		elseif grp == _G["EMOTE_GROUP_RACE"] then
+		elseif grp == Thaliz.constant.EMOTE_GROUP_RACE then
 			grpColor = { 0.80, 0.80, 0.00 }
 			if prm == "DWARF" or prm == "GNOME" or prm == "HUMAN"  or prm == "NIGHT ELF" then
 				grpColor = { 0.00, 0.50, 1.00 }
@@ -328,17 +328,17 @@ function Thaliz_InitializeConfigSettings()
 		Thaliz_options = { }
 	end
 
-	Thaliz_SetRootOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"], Thaliz_GetRootOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"], _G["CONFIGURATION_DEFAULT_LEVEL"]))
-	Thaliz_ConfigurationLevel = Thaliz_GetRootOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"], _G["CONFIGURATION_DEFAULT_LEVEL"])
+	Thaliz_SetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz_GetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz.constant.CONFIGURATION_DEFAULT_LEVEL))
+	Thaliz_ConfigurationLevel = Thaliz_GetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz.constant.CONFIGURATION_DEFAULT_LEVEL)
 
-	Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"], Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"], _G["TARGET_CHANNEL_DEFAULT"]))
-	Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"], Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"], _G["TARGET_WHISPER_DEFAULT"]))
-	Thaliz:SetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"], Thaliz:GetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"], _G["RESURRECTION_WHISPER_MESSAGE_DEFAULT"]))
-	Thaliz:SetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"], Thaliz:GetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"], _G["INCLUDE_DEFAULT_GROUP_DEFAULT"]))
+	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, Thaliz.constant.TARGET_CHANNEL_DEFAULT))
+	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, Thaliz.constant.TARGET_WHISPER_DEFAULT))
+	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE, Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE, Thaliz.constant.RESURRECTION_WHISPER_MESSAGE_DEFAULT))
+	Thaliz:SetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, Thaliz:GetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, Thaliz.constant.INCLUDE_DEFAULT_GROUP_DEFAULT))
 
 	local x,y = RezButton:GetPoint()
-	Thaliz:SetOption(_G["OPTION_REZ_BUTTON_POS_X"], Thaliz:GetOption(_G["OPTION_REZ_BUTTON_POS_X"], x))
-	Thaliz:SetOption(_G["OPTION_REZ_BUTTON_POS_Y"], Thaliz:GetOption(_G["OPTION_REZ_BUTTON_POS_Y"], y))
+	Thaliz:SetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_X, Thaliz:GetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_X, x))
+	Thaliz:SetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_Y, Thaliz:GetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_Y, y))
 
 	Thaliz_ValidateResurrectionMessages()
 end
@@ -354,7 +354,7 @@ function Thaliz_ValidateResurrectionMessages()
 			-- Macro is fine; do nothing
 		else
 			-- Macro is ... hmmm beyond repair?; reset it:
-			macros[n] = { "", _G["EMOTE_GROUP_DEFAULT"], "" }
+			macros[n] = { "", Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
 			changed = true
 		end
 	end
@@ -410,7 +410,7 @@ end
 --
 --  *******************************************************
 function Thaliz_AnnounceResurrection(playername, unitid)
-	if (Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"]) == "NONE" and Thaliz:GetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"]) == 0) then
+	if (Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) == "NONE" and Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE) == 0) then
 		return
 	end
 
@@ -460,25 +460,25 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 			param = string.upper(macro[3])
 		end
 
-		if macro[2] == _G["EMOTE_GROUP_DEFAULT"] then
+		if macro[2] == Thaliz.constant.EMOTE_GROUP_DEFAULT then
 			didx = didx + 1
 			dmacro[ didx ] = macro
-		elseif macro[2] == _G["EMOTE_GROUP_GUILD"] then
+		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_GUILD then
 			if param == UCGuildname then
 				gidx = gidx + 1
 				gmacro[ gidx ] = macro
 			end
-		elseif macro[2] == _G["EMOTE_GROUP_CHARACTER"] then
+		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_CHARACTER then
 			if param == charname then
 				nidx = nidx + 1
 				nmacro[ nidx ] = macro
 			end
-		elseif macro[2] == _G["EMOTE_GROUP_CLASS"] then
+		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_CLASS then
 			if param == classname then
 				cidx = cidx + 1
 				cmacro[ cidx ] = macro
 			end
-		elseif macro[2] == _G["EMOTE_GROUP_RACE"] then
+		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_RACE then
 			if param == race then
 				ridx = ridx + 1
 				rmacro[ ridx ] = macro
@@ -510,7 +510,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	-- * There is no messages matching the group rule, or
 	-- * The "Add messages for everyone to the list of targeted messages" option is selected.
 	if table.getn(macros) == 0 or
-		Thaliz:GetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"]) == 1 then
+		Thaliz:GetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP) == 1 then
 		for n=1, table.getn( dmacro ), 1 do
 			index = index + 1
 			macros[index] = dmacro[n]
@@ -540,7 +540,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	message = string.gsub(message, "%%g", guildname)
 	message = string.gsub(message, "%%s", playername)
 
-	local targetChannel = Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"])
+	local targetChannel = Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL)
 
 	if not IsInInstance() then
 		if targetChannel == "SAY" or targetChannel == "YELL" then
@@ -551,15 +551,15 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 	if targetChannel == "RAID" then
 		partyEcho(message)
 	elseif targetChannel == "SAY" then
-		SendChatMessage(message, _G["SAY_CHANNEL"])
+		SendChatMessage(message, Thaliz.constant.SAY_CHANNEL)
 	elseif targetChannel == "YELL" then
-		SendChatMessage(message, _G["YELL_CHANNEL"])
+		SendChatMessage(message, Thaliz.constant.YELL_CHANNEL)
 	else
 		echo(message)
 	end
 
-	if Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"]) == 1 then
-		local whisperMsg = Thaliz:GetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"])
+	if Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER) == 1 then
+		local whisperMsg = Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE)
 		if whisperMsg and not(whisperMsg == "") then
 			SendChatMessage(whisperMsg, "WHISPER", nil, playername)
 		end
@@ -567,7 +567,7 @@ function Thaliz_AnnounceResurrection(playername, unitid)
 end
 
 function Thaliz:GetResurrectionMessages()
-	local messages = Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGES"], nil)
+	local messages = Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGES, nil)
 
 	if (not messages) or not(type(messages) == "table") or (table.getn(messages) == 0) then
 		messages = Thaliz_ResetResurrectionMessages()
@@ -602,7 +602,7 @@ function Thaliz:DeleteResurrectionMessage(index)
 end
 
 function Thaliz:SetResurrectionMessages(resurrectionMessages)
-	Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGES"], Thaliz_RenumberTable(resurrectionMessages))
+	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGES, Thaliz_RenumberTable(resurrectionMessages))
 end
 
 function Thaliz:SetResurrectionMessage(messageIndex, propertyIndex, value)
@@ -617,7 +617,7 @@ function Thaliz_ResetResurrectionMessages()
 	local messages = {}
 
 	for key, message in pairs(L["Default Messages"]) do
-		messages[key] = { message, _G["EMOTE_GROUP_DEFAULT"], "" }
+		messages[key] = { message, Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
 	end
 
 	Thaliz:SetResurrectionMessages( messages )
@@ -627,14 +627,14 @@ end
 
 function Thaliz_CheckMessage(msg)
 	if not msg or msg == "" then
-		msg = _G["EMPTY_MESSAGE"]
+		msg = Thaliz.constant.EMPTY_MESSAGE
 	end
 	return msg
 end
 
 function Thaliz_CheckGroup(group)
 	if not group or group == "" then
-		group = _G["EMOTE_GROUP_DEFAULT"]
+		group = Thaliz.constant.EMOTE_GROUP_DEFAULT
 	end
 	return group
 end
@@ -694,7 +694,7 @@ function Thaliz_ScanRaid()
 	-- Doh, 1! Can't ress while dead!
 	if UnitIsDeadOrGhost("player") then
 		Thaliz_SetRezTargetText()
-		Thaliz_SetButtonTexture(_G["REZBTN_DEAD"])
+		Thaliz_SetButtonTexture(Thaliz.constant.REZBTN_DEAD)
 
 		if(debug) then
 			echo("**DEBUG**: UnitIsDeadOrGhost=true")
@@ -705,7 +705,7 @@ function Thaliz_ScanRaid()
 	-- Doh, 2! Can't ress while in combat. Sorry druids, you get a LUA error if you try :-(
 	if UnitAffectingCombat("player") then
 		Thaliz_SetRezTargetText()
-		Thaliz_SetButtonTexture(_G["REZBTN_COMBAT"])
+		Thaliz_SetButtonTexture(Thaliz.constant.REZBTN_COMBAT)
 
 		if(debug) then
 			echo("**DEBUG**: UnitAffectingCombat=true")
@@ -785,15 +785,15 @@ function Thaliz_ScanRaid()
 			classinfo = Thaliz_GetClassinfo(Thaliz_UnitClass(unitid))
 			targetprio = classinfo[2]
 			if targetname and targetname == playername then
-				targetprio = _G["PRIORITY_TO_CURRENT_TARGET"]
+				targetprio = Thaliz.constant.PRIORITY_TO_CURRENT_TARGET
 			end
 
 --	IsRaidLeader(): removed in wow 5.0 and thereby Classic!
---			if IsRaidLeader(playername) and targetprio < _G["PRIORITY_TO_GROUP_LEADER"] then
---				targetprio = _G["PRIORITY_TO_GROUP_LEADER"]
+--			if IsRaidLeader(playername) and targetprio < Thaliz.constant.PRIORITY_TO_GROUP_LEADER then
+--				targetprio = Thaliz.constant.PRIORITY_TO_GROUP_LEADER
 --			end
 			if not warlocksAlive and classinfo[1] == "Warlock" then
-				targetprio = _G["PRIORITY_TO_FIRST_WARLOCK"]
+				targetprio = Thaliz.constant.PRIORITY_TO_FIRST_WARLOCK
 			end
 
 			-- Check if the current target is still eligible for ress:
@@ -895,28 +895,28 @@ function Thaliz_InitClassSpecificStuff()
 	end
 
 
-	THALIZ_RezBtn_Passive = _G["ICON_OTHER_PASSIVE"]
-	THALIZ_RezBtn_Active = _G["ICON_OTHER_PASSIVE"]
+	THALIZ_RezBtn_Passive = Thaliz.constant.ICON_OTHER_PASSIVE
+	THALIZ_RezBtn_Active = Thaliz.constant.ICON_OTHER_PASSIVE
 	if classname == "DRUID" then
 		IsDruid = true
 		IsResser = true
-		THALIZ_RezBtn_Passive = _G["ICON_DRUID_PASSIVE"]
-		THALIZ_RezBtn_Active = _G["ICON_DRUID_ACTIVE"]
+		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_DRUID_PASSIVE
+		THALIZ_RezBtn_Active = Thaliz.constant.ICON_DRUID_ACTIVE
 	elseif classname == "PALADIN" then
 		IsPaladin = true
 		IsResser = true
-		THALIZ_RezBtn_Passive = _G["ICON_PALADIN_PASSIVE"]
-		THALIZ_RezBtn_Active = _G["ICON_PALADIN_ACTIVE"]
+		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_PALADIN_PASSIVE
+		THALIZ_RezBtn_Active = Thaliz.constant.ICON_PALADIN_ACTIVE
 	elseif classname == "PRIEST" then
 		IsPriest = true
 		IsResser = true
-		THALIZ_RezBtn_Passive = _G["ICON_PRIEST_PASSIVE"]
-		THALIZ_RezBtn_Active = _G["ICON_PRIEST_ACTIVE"]
+		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_PRIEST_PASSIVE
+		THALIZ_RezBtn_Active = Thaliz.constant.ICON_PRIEST_ACTIVE
 	elseif classname == "SHAMAN" then
 		IsShaman = true
 		IsResser = true
-		THALIZ_RezBtn_Passive = _G["ICON_SHAMAN_PASSIVE"]
-		THALIZ_RezBtn_Active = _G["ICON_SHAMAN_ACTIVE"]
+		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_SHAMAN_PASSIVE
+		THALIZ_RezBtn_Active = Thaliz.constant.ICON_SHAMAN_ACTIVE
 	end
 end
 
@@ -967,7 +967,7 @@ end
 --  *******************************************************
 function Thaliz_BlacklistPlayer(playername, blacklistTime)
 	if not blacklistTime then
-		blacklistTime = _G["BLACKLIST_TIMEOUT"]
+		blacklistTime = Thaliz.constant.BLACKLIST_TIMEOUT
 	end
 
 	local timerTick = Thaliz_GetTimerTick()
@@ -1119,7 +1119,7 @@ function Thalix_CheckIsNewVersion(versionstring)
 		if incomingVersion > THALIZ_CURRENT_VERSION then
 			if not THALIZ_UPDATE_MESSAGE_SHOWN then
 				THALIZ_UPDATE_MESSAGE_SHOWN = true
-				Thaliz:Echo(string.format("NOTE: A newer version of ".. _G["COLOUR_INTRO"] .."THALIZ".._G["COLOUR_CHAT"].."! is available (version %s)!", versionstring))
+				Thaliz:Echo(string.format("NOTE: A newer version of ".. Thaliz.constant.COLOUR_INTRO .."THALIZ"..Thaliz.constant.COLOUR_CHAT.."! is available (version %s)!", versionstring))
 				Thaliz:Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(_, "X-Website")))
 			end
 		end
@@ -1185,7 +1185,7 @@ function Thaliz:SendAddonMessage(message)
 		elseif Thaliz:IsInParty() then
 			channel = "PARTY"
 		end
-		C_ChatInfo.SendAddonMessage(_G["MESSAGE_PREFIX"], message, channel)
+		C_ChatInfo.SendAddonMessage(Thaliz.constant.MESSAGE_PREFIX, message, channel)
 	end
 end
 
@@ -1226,7 +1226,7 @@ end
 
 function Thaliz_OnChatMsgAddon(event, ...)
 	local prefix, msg, channel, sender = ...
-	if prefix == _G["MESSAGE_PREFIX"] then
+	if prefix == Thaliz.constant.MESSAGE_PREFIX then
 		Thaliz_HandleThalizMessage(msg, Thaliz_GetPlayerName(sender))
 	end
 end
@@ -1408,7 +1408,7 @@ function Thaliz:OnEvent(event, ...)
 
 		if subevent == "SPELL_RESURRECT" then
 			if sourceName ~= UnitName("player") then
-				Thaliz_BlacklistPlayer(destName, _G["BLACKLIST_RESURRECT"])
+				Thaliz_BlacklistPlayer(destName, Thaliz.constant.BLACKLIST_RESURRECT)
 			end
 		end
 
@@ -1436,6 +1436,6 @@ end
 function Thaliz_RepositionateButton(self)
 	local x, y = self:GetLeft(), self:GetTop() - UIParent:GetHeight()
 
-	Thaliz:SetOption(_G["OPTION_REZ_BUTTON_POS_X"], x)
-	Thaliz:SetOption(_G["OPTION_REZ_BUTTON_POS_Y"], y)
+	Thaliz:SetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_X, x)
+	Thaliz:SetOption(Thaliz.constant.OPTION_REZ_BUTTON_POS_Y, y)
 end

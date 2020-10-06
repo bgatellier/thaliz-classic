@@ -22,11 +22,11 @@ local function inNumericTable(v, t)
 end
 
 local function isWarnPeopleDisabled()
-	return Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"]) == "NONE"
+	return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) == "NONE"
 end
 
 local function isTargetWhisperDisabled()
-	return Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"]) == 0
+	return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER) == 0
 end
 
 
@@ -42,10 +42,10 @@ local function CreateMessageGroupOption(index)
 			local groupValue = message[3]
 			local rgbColor = "ff808080"
 
-			if (group == _G["EMOTE_GROUP_GUILD"]) then rgbColor = "ff00ff00"
-			elseif (group == _G["EMOTE_GROUP_CHARACTER"]) then rgbColor = "ffcccccc"
-			elseif (group == _G["EMOTE_GROUP_CLASS"] and _G["RAID_CLASS_COLORS"][string.upper(groupValue)] ~= nil ) then rgbColor = _G["RAID_CLASS_COLORS"][string.upper(groupValue)].colorStr
-			elseif (group == _G["EMOTE_GROUP_RACE"]) then
+			if (group == Thaliz.constant.EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
+			elseif (group == Thaliz.constant.EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
+			elseif (group == Thaliz.constant.EMOTE_GROUP_CLASS and Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
+			elseif (group == Thaliz.constant.EMOTE_GROUP_RACE) then
 				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
 				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
 				else rgbColor = "ffcc00ff"
@@ -70,11 +70,11 @@ local function CreateMessageGroupOption(index)
 				type = "select",
 				order = 2,
 				values = {
-					[_G["EMOTE_GROUP_DEFAULT"]] = "Everyone",
-					[_G["EMOTE_GROUP_GUILD"]] = "a Guild",
-					[_G["EMOTE_GROUP_CHARACTER"]] = "a Character",
-					[_G["EMOTE_GROUP_CLASS"]] = "a Class",
-					[_G["EMOTE_GROUP_RACE"]] = "a Race",
+					[Thaliz.constant.EMOTE_GROUP_DEFAULT] = "Everyone",
+					[Thaliz.constant.EMOTE_GROUP_GUILD] = "a Guild",
+					[Thaliz.constant.EMOTE_GROUP_CHARACTER] = "a Character",
+					[Thaliz.constant.EMOTE_GROUP_CLASS] = "a Class",
+					[Thaliz.constant.EMOTE_GROUP_RACE] = "a Race",
 				},
 				set = function (info, value)
 					Thaliz:SetResurrectionMessage(index, 2, value)
@@ -83,7 +83,7 @@ local function CreateMessageGroupOption(index)
 					Thaliz:SetResurrectionMessage(index, 3, "")
 
 					-- Enable/disable the groupValue option
-					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == _G["EMOTE_GROUP_DEFAULT"])
+					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == Thaliz.constant.EMOTE_GROUP_DEFAULT)
 				end,
 				get = function (value) return Thaliz:GetResurrectionMessage(index)[2] end,
 			},
@@ -94,7 +94,7 @@ local function CreateMessageGroupOption(index)
 				disabled = function ()
 					local message = Thaliz:GetResurrectionMessage(index)
 
-					return message[2] == _G["EMOTE_GROUP_DEFAULT"]
+					return message[2] == Thaliz.constant.EMOTE_GROUP_DEFAULT
 				end,
 				order = 3,
 				width = "full",
@@ -103,11 +103,11 @@ local function CreateMessageGroupOption(index)
 
 					-- Allow both "nightelf" and "night elf".
 					-- This weird construction ensures all are shown with capital first letter.
-					if (group == _G["EMOTE_GROUP_RACE"] and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
+					if (group == Thaliz.constant.EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
 						value = "night elf"
 					end
 
-					if group == _G["EMOTE_GROUP_CHARACTER"] or group == _G["EMOTE_GROUP_CLASS"] or group == _G["EMOTE_GROUP_RACE"] then
+					if group == Thaliz.constant.EMOTE_GROUP_CHARACTER or group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
 						value = Thaliz_UCFirst(value)
 					end
 
@@ -118,10 +118,10 @@ local function CreateMessageGroupOption(index)
 					local standardizedInput = value
 					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
 
-					if (selectedGroup == _G["EMOTE_GROUP_CLASS"]) then
+					if (selectedGroup == Thaliz.constant.EMOTE_GROUP_CLASS) then
 						allowedValues = groupClassesAllowed
 						standardizedInput = Thaliz_UCFirst(standardizedInput)
-					elseif (selectedGroup == _G["EMOTE_GROUP_RACE"]) then
+					elseif (selectedGroup == Thaliz.constant.EMOTE_GROUP_RACE) then
 						allowedValues = groupRacesAllowed
 
 						-- Allow both "nightelf" and "night elf".
@@ -193,12 +193,12 @@ local function GetOptions()
 						set = function (info, value)
 							if value then
 								-- Assume the default value "RAID" if checked
-								Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"], "RAID")
+								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, "RAID")
 							else
-								Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"], "NONE")
+								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, "NONE")
 							end
 						end,
-						get = function (value) return Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"]) ~= "NONE" end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) ~= "NONE" end,
 					},
 					channel = {
 						name = "Broadcast channel",
@@ -207,8 +207,8 @@ local function GetOptions()
 						order = 2,
 						width = "normal",
 						hidden = isWarnPeopleDisabled,
-						set = function (info, value) Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"], value) end,
-						get = function (value) return Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL"]) end,
+						set = function (info, value) Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, value) end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) end,
 					},
 					includeEveryone = {
 						name = "Add messages for everyone to the list of targeted messages",
@@ -218,12 +218,12 @@ local function GetOptions()
 						hidden = isWarnPeopleDisabled,
 						set = function (info, value)
 							if value then
-								Thaliz:SetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"], 1)
+								Thaliz:SetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, 1)
 							else
-								Thaliz:SetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"], 0)
+								Thaliz:SetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, 0)
 							end
 						end,
-						get = function (value) return Thaliz:GetOption(_G["OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP"]) == 1 end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP) == 1 end,
 					},
 					messages = {
 						name = "Messages",
@@ -264,12 +264,12 @@ local function GetOptions()
 						order = 1,
 						set = function (info, value)
 							if value then
-								Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"], 1)
+								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, 1)
 							else
-								Thaliz:SetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"], 0)
+								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, 0)
 							end
 						end,
-						get = function (value) return Thaliz:GetOption(_G["OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER"]) == 1 end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER) == 1 end,
 					},
 					message = {
 						name = "Message",
@@ -277,8 +277,8 @@ local function GetOptions()
 						order = 2,
 						width = "full",
 						hidden = isTargetWhisperDisabled,
-						set = function (info, value) Thaliz:SetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"], value) end,
-						get = function (value) return Thaliz:GetOption(_G["OPTION_RESURRECTION_WHISPER_MESSAGE"]) end,
+						set = function (info, value) Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE, value) end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE) end,
 					},
 				},
 			},
@@ -295,12 +295,12 @@ local function GetOptions()
 						width = "full",
 						set = function (info, value)
 							if value then
-								Thaliz:SetOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"], "Character")
+								Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Character")
 							else
-								Thaliz:SetOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"], "Realm")
+								Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Realm")
 							end
 						end,
-						get = function (value) return Thaliz:GetOption(_G["ROOT_OPTION_CHARACTER_BASED_SETTINGS"]) == "Character" end,
+						get = function (value) return Thaliz:GetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS) == "Character" end,
 					},
 				},
 			},
