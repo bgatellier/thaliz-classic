@@ -11,12 +11,11 @@ https://github.com/Sentilix/thaliz-classic
 Please see the ReadMe.txt for addon details.
 ]]
 
-local THALIZ_NAME							= "Thaliz"
-
+local _, Thaliz = ...
 
 -- Create the AceAddon instance
-Thaliz = LibStub("AceAddon-3.0"):NewAddon(THALIZ_NAME, "AceConsole-3.0", "AceEvent-3.0")
-local L = LibStub("AceLocale-3.0"):GetLocale(THALIZ_NAME, true)
+Thaliz = LibStub("AceAddon-3.0"):NewAddon(_, "AceConsole-3.0", "AceEvent-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale(_, true)
 
 
 local PARTY_CHANNEL							= "PARTY"
@@ -440,25 +439,25 @@ local function GetOptions()
 				args = {
 					title = {
 						type = "description",
-						name = GetAddOnMetadata(THALIZ_NAME, "Title"),
+						name = GetAddOnMetadata(_, "Title"),
 						fontSize = "large",
 						order = 1,
 					},
 					version = {
 						type = "description",
-						name = string.format("\nVersion %s", GetAddOnMetadata(THALIZ_NAME, "Version")),
+						name = string.format("\nVersion %s", GetAddOnMetadata(_, "Version")),
 						fontSize = "medium",
 						order = 2,
 					},
 					authors = {
 						type = "description",
-						name = string.format("\nBy %s, with the contribution of %s", GetAddOnMetadata(THALIZ_NAME, "Author"), GetAddOnMetadata(THALIZ_NAME, "X-Contributors")),
+						name = string.format("\nBy %s, with the contribution of %s", GetAddOnMetadata(_, "Author"), GetAddOnMetadata(_, "X-Contributors")),
 						fontSize = "medium",
 						order = 3,
 					},
 					repository = {
 						type = "description",
-						name = string.format("\nDownload the latest version at %s", GetAddOnMetadata(THALIZ_NAME, "X-Website")),
+						name = string.format("\nDownload the latest version at %s", GetAddOnMetadata(_, "X-Website")),
 						fontSize = "medium",
 						order = 4,
 					},
@@ -469,7 +468,7 @@ local function GetOptions()
 				desc = "Show/Hide configuration options",
 				type = "execute",
 				guiHidden = true,
-				func = function (info) LibStub("AceConfigDialog-3.0"):Open(THALIZ_NAME) end,
+				func = function (info) LibStub("AceConfigDialog-3.0"):Open(_) end,
 			},
 			debug = {
 				name = "Debug",
@@ -498,7 +497,7 @@ local function GetOptions()
 					if IsInRaid() or Thaliz:IsInParty() then
 						Thaliz:SendAddonMessage("TX_VERSION##")
 					else
-						Thaliz_Echo(string.format("version %s by %s", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
+						Thaliz:Echo(string.format("version %s by %s", GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
 					end
 				end
 			},
@@ -518,9 +517,9 @@ end
 
 
 function Thaliz:OnInitialize()
-	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata(THALIZ_NAME, "Version") )
+	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata(_, "Version") )
 
-	Thaliz:Echo(string.format("version %s by %s", GetAddOnMetadata(THALIZ_NAME, "Version"), GetAddOnMetadata(THALIZ_NAME, "Author")))
+	Thaliz:Echo(string.format("version %s by %s", GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
 
 	Thaliz:RegisterEvents()
 	Thaliz:RegisterOnUpdate()
@@ -533,8 +532,8 @@ function Thaliz:OnInitialize()
 
 	Thaliz_InitializeConfigSettings()
 
-	LibStub("AceConfig-3.0"):RegisterOptionsTable(THALIZ_NAME, GetOptions(), { "thaliz" })
-	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(THALIZ_NAME)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable(_, GetOptions(), { "thaliz" })
+	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(_)
 end
 
 function Thaliz:OnEnable()
@@ -1552,7 +1551,7 @@ end
 function Thaliz_OnRaidRosterUpdate(event, ...)
 	if THALIZ_CURRENT_VERSION > 0 and not THALIZ_UPDATE_MESSAGE_SHOWN then
 		if IsInRaid() or Thaliz:IsInParty() then
-			local versionstring = GetAddOnMetadata(THALIZ_NAME, "Version")
+			local versionstring = GetAddOnMetadata(_, "Version")
 			Thaliz:SendAddonMessage(string.format("TX_VERCHECK#%s#", versionstring))
 		end
 	end
@@ -1578,7 +1577,7 @@ function Thalix_CheckIsNewVersion(versionstring)
 			if not THALIZ_UPDATE_MESSAGE_SHOWN then
 				THALIZ_UPDATE_MESSAGE_SHOWN = true
 				Thaliz:Echo(string.format("NOTE: A newer version of ".. COLOUR_INTRO .."THALIZ"..COLOUR_CHAT.."! is available (version %s)!", versionstring))
-				Thaliz:Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(THALIZ_NAME, "X-Website")))
+				Thaliz:Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(_, "X-Website")))
 			end
 		end
 	end
@@ -1659,7 +1658,7 @@ end
 	Thaliz:<sender (which is actually the receiver!)>:<version number>
 ]]
 function Thaliz_HandleTXVersion(message, sender)
-	local response = GetAddOnMetadata(THALIZ_NAME, "Version")
+	local response = GetAddOnMetadata(_, "Version")
 	Thaliz:SendAddonMessage("RX_VERSION#"..response.."#"..sender)
 end
 
