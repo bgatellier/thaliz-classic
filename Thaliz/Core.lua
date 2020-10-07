@@ -18,13 +18,13 @@ Thaliz = LibStub("AceAddon-3.0"):NewAddon(Thaliz, _, "AceConsole-3.0", "AceEvent
 local L = LibStub("AceLocale-3.0"):GetLocale(_, true)
 
 
-local THALIZ_CURRENT_VERSION				= 0
-local THALIZ_UPDATE_MESSAGE_SHOWN			= false
+local currentVersion				= 0
+local updateMessageShown			= false
 
 
 --	List of valid class names with priority and resurrection spell name (if any)
 --	classname, priority, ress spellname
-local classInfo = {
+local CLASS_INFO = {
 	{ "Druid",   40, L["Rebirth"]			},
 	{ "Hunter",  30, nil					},
 	{ "Mage",    40, nil					},
@@ -37,31 +37,31 @@ local classInfo = {
 }
 
 
-local IsPaladin = false
-local IsPriest = false
-local IsShaman = false
-local IsDruid = false
-local IsResser = false
+local isPaladin = false
+local isPriest = false
+local isShaman = false
+local isDruid = false
+local isResser = false
 
-local THALIZ_RezBtn_Passive		= ""
-local THALIZ_RezBtn_Active		= ""
+local rezBtnPassive		= ""
+local rezBtnActive		= ""
 
 -- List of blacklisted (already ressed) people
 local blacklistedTable = {}
 
-local ThalizDoScanRaid = true
-local ThalizScanFrequency = 0.2		-- Scan 5 times per second
+local doScanRaid = true
+local scanFrequency = 0.2		-- Scan 5 times per second
 
-local Thaliz_ConfigurationLevel
+local configurationLevel
 
-local Thaliz_DebugFunction = nil
+local debugFunction = nil
 
 -- Persisted information:
 Thaliz_Options = { }
 
 
 function Thaliz:OnInitialize()
-	THALIZ_CURRENT_VERSION = Thaliz_CalculateVersion( GetAddOnMetadata(_, "Version") )
+	currentVersion = Thaliz_CalculateVersion( GetAddOnMetadata(_, "Version") )
 
 	Thaliz:Echo(string.format("version %s by %s.", GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
 
@@ -271,7 +271,7 @@ function Thaliz:GetOption(parameter, defaultValue)
 	local realmname = GetRealmName()
 	local playername = UnitName("player")
 
-	if Thaliz_ConfigurationLevel == "Character" then
+	if configurationLevel == "Character" then
 		-- Character level
 		if Thaliz_Options[realmname] then
 			if Thaliz_Options[realmname][playername] then
@@ -302,7 +302,7 @@ function Thaliz:SetOption(parameter, value)
 	local realmname = GetRealmName()
 	local playername = UnitName("player")
 
-	if Thaliz_ConfigurationLevel == "Character" then
+	if configurationLevel == "Character" then
 		-- Character level:
 		if not Thaliz_Options[realmname] then
 			Thaliz_Options[realmname] = {}
@@ -329,7 +329,7 @@ function Thaliz_InitializeConfigSettings()
 	end
 
 	Thaliz_SetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz_GetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz.constant.CONFIGURATION_DEFAULT_LEVEL))
-	Thaliz_ConfigurationLevel = Thaliz_GetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz.constant.CONFIGURATION_DEFAULT_LEVEL)
+	configurationLevel = Thaliz_GetRootOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, Thaliz.constant.CONFIGURATION_DEFAULT_LEVEL)
 
 	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, Thaliz.constant.TARGET_CHANNEL_DEFAULT))
 	Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, Thaliz.constant.TARGET_WHISPER_DEFAULT))
@@ -670,23 +670,23 @@ Scan the entire raid / group for corpses, and activate
 ress button if anyone found.
 --]]
 function Thaliz_ScanRaid()
-	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_ScanRaid")
+	local debug = (debugFunction and debugFunction == "Thaliz_ScanRaid")
 
-	if not ThalizDoScanRaid then
+	if not doScanRaid then
 		Thaliz_SetRezTargetText()
 		if(debug) then
-			echo("**DEBUG**: ThalizDoScanRaid=false")
+			echo("**DEBUG**: doScanRaid=false")
 		end
 		return
 	end
 
 	--	Jesus, this class can't even ress!! Disable event
-	if not IsResser then
-		ThalizDoScanRaid = false
+	if not isResser then
+		doScanRaid = false
 		Thaliz_HideResurrectionButton()
 
 		if(debug) then
-			echo("**DEBUG**: IsResser=false")
+			echo("**DEBUG**: isResser=false")
 		end
 		return
 	end
@@ -847,7 +847,7 @@ function Thaliz_ScanRaid()
 	end
 
 	Thaliz_SetRezTargetText(UnitName(unitid))
-	Thaliz_SetButtonTexture(THALIZ_RezBtn_Active, true)
+	Thaliz_SetButtonTexture(rezBtnActive, true)
 end
 
 
@@ -878,7 +878,7 @@ end
 
 
 function Thaliz_HideResurrectionButton()
-	Thaliz_SetButtonTexture(THALIZ_RezBtn_Passive)
+	Thaliz_SetButtonTexture(rezBtnPassive)
 	RezButton:SetAttribute("type", nil)
 	RezButton:SetAttribute("unit", nil)
 	Thaliz_SetRezTargetText()
@@ -886,7 +886,7 @@ end
 
 
 function Thaliz_InitClassSpecificStuff()
-	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_Init")
+	local debug = (debugFunction and debugFunction == "Thaliz_Init")
 	local classname = Thaliz_UnitClass("player")
 
 	if(debug) then
@@ -895,28 +895,28 @@ function Thaliz_InitClassSpecificStuff()
 	end
 
 
-	THALIZ_RezBtn_Passive = Thaliz.constant.ICON_OTHER_PASSIVE
-	THALIZ_RezBtn_Active = Thaliz.constant.ICON_OTHER_PASSIVE
+	rezBtnPassive = Thaliz.constant.ICON_OTHER_PASSIVE
+	rezBtnActive = Thaliz.constant.ICON_OTHER_PASSIVE
 	if classname == "DRUID" then
-		IsDruid = true
-		IsResser = true
-		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_DRUID_PASSIVE
-		THALIZ_RezBtn_Active = Thaliz.constant.ICON_DRUID_ACTIVE
+		isDruid = true
+		isResser = true
+		rezBtnPassive = Thaliz.constant.ICON_DRUID_PASSIVE
+		rezBtnActive = Thaliz.constant.ICON_DRUID_ACTIVE
 	elseif classname == "PALADIN" then
-		IsPaladin = true
-		IsResser = true
-		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_PALADIN_PASSIVE
-		THALIZ_RezBtn_Active = Thaliz.constant.ICON_PALADIN_ACTIVE
+		isPaladin = true
+		isResser = true
+		rezBtnPassive = Thaliz.constant.ICON_PALADIN_PASSIVE
+		rezBtnActive = Thaliz.constant.ICON_PALADIN_ACTIVE
 	elseif classname == "PRIEST" then
-		IsPriest = true
-		IsResser = true
-		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_PRIEST_PASSIVE
-		THALIZ_RezBtn_Active = Thaliz.constant.ICON_PRIEST_ACTIVE
+		isPriest = true
+		isResser = true
+		rezBtnPassive = Thaliz.constant.ICON_PRIEST_PASSIVE
+		rezBtnActive = Thaliz.constant.ICON_PRIEST_ACTIVE
 	elseif classname == "SHAMAN" then
-		IsShaman = true
-		IsResser = true
-		THALIZ_RezBtn_Passive = Thaliz.constant.ICON_SHAMAN_PASSIVE
-		THALIZ_RezBtn_Active = Thaliz.constant.ICON_SHAMAN_ACTIVE
+		isShaman = true
+		isResser = true
+		rezBtnPassive = Thaliz.constant.ICON_SHAMAN_PASSIVE
+		rezBtnActive = Thaliz.constant.ICON_SHAMAN_ACTIVE
 	end
 end
 
@@ -936,10 +936,10 @@ end
 
 
 function Thaliz_GetClassinfo(classname)
-	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_GetClassinfo")
+	local debug = (debugFunction and debugFunction == "Thaliz_GetClassinfo")
 
 	classname = Thaliz_UCFirst(classname)
-	for key, val in next, classInfo do
+	for key, val in next, CLASS_INFO do
 		if val[1] == classname then
 			if(debug) then
 				if not classname then classname = "nil" end
@@ -1092,7 +1092,7 @@ end
 	my version has not been identified as being too low (MessageShown = false)
 ]]
 function Thaliz_OnRaidRosterUpdate(event, ...)
-	if THALIZ_CURRENT_VERSION > 0 and not THALIZ_UPDATE_MESSAGE_SHOWN then
+	if currentVersion > 0 and not updateMessageShown then
 		if IsInRaid() or Thaliz:IsInParty() then
 			local versionstring = GetAddOnMetadata(_, "Version")
 			Thaliz:SendAddonMessage(string.format("TX_VERCHECK#%s#", versionstring))
@@ -1115,10 +1115,10 @@ end
 function Thalix_CheckIsNewVersion(versionstring)
 	local incomingVersion = Thaliz_CalculateVersion( versionstring )
 
-	if (THALIZ_CURRENT_VERSION > 0 and incomingVersion > 0) then
-		if incomingVersion > THALIZ_CURRENT_VERSION then
-			if not THALIZ_UPDATE_MESSAGE_SHOWN then
-				THALIZ_UPDATE_MESSAGE_SHOWN = true
+	if (currentVersion > 0 and incomingVersion > 0) then
+		if incomingVersion > currentVersion then
+			if not updateMessageShown then
+				updateMessageShown = true
 				Thaliz:Echo(string.format("NOTE: A newer version of ".. Thaliz.constant.COLOUR_INTRO .."THALIZ"..Thaliz.constant.COLOUR_CHAT.."! is available (version %s)!", versionstring))
 				Thaliz:Echo(string.format("NOTE: Download the latest version at %s.", GetAddOnMetadata(_, "X-Website")))
 			end
@@ -1148,7 +1148,7 @@ local NextScanTime = 0
 function Thaliz_OnTimer(self, elapsed)
 	TimerTick = TimerTick + elapsed
 
-	if TimerTick > (NextScanTime + ThalizScanFrequency) then
+	if TimerTick > (NextScanTime + scanFrequency) then
 		Thaliz_ScanRaid()
 		NextScanTime = TimerTick
 	end
@@ -1264,21 +1264,21 @@ function Thaliz_SpellIsResurrect(spellId)
 	if spellId then
 		spellId = 1 * spellId
 
-		if IsPriest then
+		if isPriest then
 			--Resurrection, rank 1=2006, 2=2010, 3=10880, 4=10881, 5=20770:
 			if (spellId == 2006) or (spellId == 2010) or (spellId == 10880) or (spellId == 10881) or (spellId == 20770) then
 				resSpell = true
 			end
-		elseif IsPaladin then
+		elseif isPaladin then
 			if (spellId == 7328) or (spellId == 10322) or (spellId == 10324) or (spellId == 20772) or (spellId == 20773) then
 				resSpell = true
 			end
-		elseif IsShaman then
+		elseif isShaman then
 			--Ancestral Spirit, rank 1=2008, 2=20609, 3=20610, 4=20776, 5=20777:
 			if (spellId == 2008) or (spellId == 20609) or (spellId == 20610) or (spellId == 20776) or (spellId == 20777) then
 				resSpell = true
 			end
-		elseif IsDruid then
+		elseif isDruid then
 			--Rebirth, rank 1=20484, 2=20739, 3=20742, 4=20747, 5=20748:
 			if (spellId == 20484) or (spellId == 20739) or (spellId == 20742) or (spellId == 20747) or (spellId == 20748) then
 				resSpell = true
@@ -1329,7 +1329,7 @@ end
 
 local SpellcastIsStarted = 0
 function Thaliz:OnEvent(event, ...)
-	local debug = (Thaliz_DebugFunction and Thaliz_DebugFunction == "Thaliz_OnEvent")
+	local debug = (debugFunction and debugFunction == "Thaliz_OnEvent")
 
 	if (event == "UNIT_SPELLCAST_SENT") then
 		local resser, target, _, spellId = ...
