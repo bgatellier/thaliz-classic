@@ -11,5 +11,12 @@ embeds.xml
 
 Locales\Locales.xml
 
+## Core ##
 Core.lua
 Core.xml
+
+## Constants variables ##
+Constants.lua
+
+## Options ##
+Options.lua
