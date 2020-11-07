@@ -369,7 +369,8 @@ function GetUnitID(playername)
 	end
 
 	for n=1, groupsize, 1 do
-		unitid = grouptype..n
+		local unitid = grouptype..n
+
 		if UnitName(unitid) == playername then
 			return unitid
 		end
@@ -1197,13 +1198,12 @@ function IsSpellResurrect(spellId)
 	if spellId then
 		spellId = 1 * spellId
 
-		if playerClassName == "PRIEST" and InNumericTable(spellId, { 2006, 2010, 10880, 10881, 20770 }) then
-			isResurrect = true
-		elseif playerClassName == "PALADIN" and InNumericTable(spellId, { 7328, 10322, 10324, 20772, 20773 }) then
-			isResurrect = true
-		elseif playerClassName == "SHAMAN" and InNumericTable(spellId, { 2008, 20609, 20610, 20776, 20777 }) then
-			isResurrect = true
-		elseif playerClassName == "DRUID" and InNumericTable(spellId, { 20484, 20739, 20742, 20747, 20748 }) then
+		if (
+			playerClassName == "PRIEST" and InNumericTable(spellId, { 2006, 2010, 10880, 10881, 20770 })
+			or playerClassName == "PALADIN" and InNumericTable(spellId, { 7328, 10322, 10324, 20772, 20773 })
+			or playerClassName == "SHAMAN" and InNumericTable(spellId, { 2008, 20609, 20610, 20776, 20777 })
+			or playerClassName == "DRUID" and InNumericTable(spellId, { 20484, 20739, 20742, 20747, 20748 })
+		) then
 			isResurrect = true
 		end
 	end
