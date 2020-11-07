@@ -1,26 +1,5 @@
 local _, Thaliz = ...
 
--- Checks if a value (v) is in a numeric table (t)
-local function inNumericTable(v, t)
-	local tLength = table.getn(t)
-
-	if (tLength == 0) then
-		return false
-	end
-
-	local i = 1
-	local isInTable = false
-	while i <= tLength and not isInTable do
-		if (t[i] == v) then
-			isInTable = true
-		end
-
-		i = i + 1
-	end
-
-	return isInTable
-end
-
 local function isWarnPeopleDisabled()
 	return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) == "NONE"
 end
@@ -108,7 +87,7 @@ local function CreateMessageGroupOption(index)
 					end
 
 					if group == Thaliz.constant.EMOTE_GROUP_CHARACTER or group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
-						value = Thaliz_UCFirst(value)
+						value = UCFirst(value)
 					end
 
 					Thaliz:SetResurrectionMessage(index, 3, value)
@@ -120,7 +99,7 @@ local function CreateMessageGroupOption(index)
 
 					if (selectedGroup == Thaliz.constant.EMOTE_GROUP_CLASS) then
 						allowedValues = groupClassesAllowed
-						standardizedInput = Thaliz_UCFirst(standardizedInput)
+						standardizedInput = UCFirst(standardizedInput)
 					elseif (selectedGroup == Thaliz.constant.EMOTE_GROUP_RACE) then
 						allowedValues = groupRacesAllowed
 
@@ -130,7 +109,7 @@ local function CreateMessageGroupOption(index)
 							standardizedInput = "night elf"
 						end
 
-						standardizedInput = Thaliz_UCFirst(standardizedInput)
+						standardizedInput = UCFirst(standardizedInput)
 					end
 
 					local allowedValuesQty = table.getn(allowedValues)
@@ -138,7 +117,7 @@ local function CreateMessageGroupOption(index)
 					-- Nothing to validate: returns validation OK
 					if (allowedValuesQty == 0) then return true end
 
-					local isValidInput = inNumericTable(standardizedInput, allowedValues)
+					local isValidInput = InNumericTable(standardizedInput, allowedValues)
 
 					-- Input is valid: returns validation OK
 					if (isValidInput) then return true end
@@ -257,6 +236,7 @@ local function GetOptions()
 				name = "Private message",
 				type = "group",
 				order = 2,
+				cmdHidden = true,
 				args = {
 					enabled = {
 						name = "Enabled",

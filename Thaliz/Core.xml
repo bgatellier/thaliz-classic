@@ -12,33 +12,33 @@
 		</Anchors>
 		<Scripts>
 			<OnLoad>
-				self:EnableMouse(true);
-				self:EnableKeyboard(false);
-				self:RegisterForDrag("LeftButton");
-				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+				self:EnableMouse(true)
+				self:EnableKeyboard(false)
+				self:RegisterForDrag("LeftButton")
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
-				self:SetScript("PreClick", Thaliz_OnRezClick);
+				self:SetScript("PreClick", BroadcastResurrection);
 
-				self.title = self:CreateFontString(nil, "OVERLAY");
+				self.title = self:CreateFontString(nil, "OVERLAY")
 				self.title:SetFont("Fonts\\ARIALN.ttf",8)
 				self.title:SetTextColor(1, 1, 0)
-				self.title:SetAllPoints(self);
-				self.title:SetText("");
+				self.title:SetAllPoints(self)
+				self.title:SetText("")
 
-				self:SetAttribute("type", "spell");
-				self:SetAttribute("unit", nil);
-				self:SetAttribute("spell", nil);
-				self:SetAttribute("item", nil);
-				self:SetAttribute("target-slot", nil);
+				self:SetAttribute("type", "spell")
+				self:SetAttribute("unit", nil)
+				self:SetAttribute("spell", nil)
+				self:SetAttribute("item", nil)
+				self:SetAttribute("target-slot", nil)
 			</OnLoad>
 			<OnDragStart>
 				if (button == "LeftButton" and IsShiftKeyDown()) then
-				self:StartMoving();
+					self:StartMoving()
 				end
 			</OnDragStart>
 			<OnDragStop>
-				self:StopMovingOrSizing();
-				Thaliz_RepositionateButton(self);
+				self:StopMovingOrSizing()
+				RepositionateButton(self)
 			</OnDragStop>
 		</Scripts>
 	</Button>
