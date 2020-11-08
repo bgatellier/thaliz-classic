@@ -37,3 +37,5 @@ L["Default Messages"] = {
 	"(Résurrection) On joue plus, %s ?"									                                     ,	-- Le Recousu
 	"(Résurrection) %s, vous arrivez trop tard… Je… dois… OBÉIR !"									         ,	-- Thaddius
 }
+
+L["Private message"] = "Résurrection dans 10 secondes !"
