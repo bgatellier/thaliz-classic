@@ -37,3 +37,5 @@ L["Default Messages"] = {
 	"(Ressing) No more play, %s?"                                      ,	-- Patchwerk
 	"(Ressing) %s, you are too late... I... must... OBEY!"             ,	-- Thaddius
 }
+
+L["Private message"] = "Resurrection incoming in 10 seconds!"
