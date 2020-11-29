@@ -1,12 +1,5 @@
 local _, Thaliz = ...
-
-local function isWarnPeopleDisabled()
-	return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) == "NONE"
-end
-
-local function isTargetWhisperDisabled()
-	return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER) == 0
-end
+local L = LibStub("AceLocale-3.0"):GetLocale(_, true)
 
 
 local function CreateMessageGroupOption(index)
@@ -15,7 +8,7 @@ local function CreateMessageGroupOption(index)
 
 	return {
 		name = function (info)
-			local message = Thaliz:GetResurrectionMessage(index)
+			local message = Thaliz.db.profile.public.messages[index]
 
 			local group = message[2]
 			local groupValue = message[3]
@@ -41,8 +34,8 @@ local function CreateMessageGroupOption(index)
 				type = "input",
 				order = 1,
 				width = "full",
-				set = function (info, value) Thaliz:SetResurrectionMessage(index, 1, value) end,
-				get = function (value) return Thaliz:GetResurrectionMessage(index)[1] end,
+				set = function (info, value) Thaliz.db.profile.public.messages[index][1] = value end,
+				get = function (value) return Thaliz.db.profile.public.messages[index][1] end,
 			},
 			group = {
 				name = "Use it for",
@@ -56,25 +49,21 @@ local function CreateMessageGroupOption(index)
 					[Thaliz.constant.EMOTE_GROUP_RACE] = "a Race",
 				},
 				set = function (info, value)
-					Thaliz:SetResurrectionMessage(index, 2, value)
+					Thaliz.db.profile.public.messages[index][2] = value
 
 					-- Reset the value of the groupValue option
-					Thaliz:SetResurrectionMessage(index, 3, "")
+					Thaliz.db.profile.public.messages[index][3] = ""
 
 					-- Enable/disable the groupValue option
 					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == Thaliz.constant.EMOTE_GROUP_DEFAULT)
 				end,
-				get = function (value) return Thaliz:GetResurrectionMessage(index)[2] end,
+				get = function (value) return Thaliz.db.profile.public.messages[index][2] end,
 			},
 			groupValue = {
 				name = "who/which is",
 				desc = "For the class or race selector use the english language (e.g. hunter, dwarf...",
 				type = "input",
-				disabled = function ()
-					local message = Thaliz:GetResurrectionMessage(index)
-
-					return message[2] == Thaliz.constant.EMOTE_GROUP_DEFAULT
-				end,
+				disabled = function () return Thaliz.db.profile.public.messages[index][2] == Thaliz.constant.EMOTE_GROUP_DEFAULT end,
 				order = 3,
 				width = "full",
 				set = function (info, value)
@@ -90,7 +79,7 @@ local function CreateMessageGroupOption(index)
 						value = UCFirst(value)
 					end
 
-					Thaliz:SetResurrectionMessage(index, 3, value)
+					Thaliz.db.profile.public.messages[index][3] = value
 				end,
 				validate = function (info, value)
 					local allowedValues = {}
@@ -137,14 +126,14 @@ local function CreateMessageGroupOption(index)
 
 					return error
 				end,
-				get = function (value) return Thaliz:GetResurrectionMessage(index)[3] end,
+				get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
 			},
 			delete = {
 				name = "Delete this message",
 				type = "execute",
 				func = function (info)
 					-- Remove from the memory
-					Thaliz:DeleteResurrectionMessage(index)
+					Thaliz.db.profile.public.messages.remove(index)
 
 					-- Remove from the options / GUI
 					info.options.args.public.args.messages.args["message" .. index] = nil
@@ -169,15 +158,8 @@ local function GetOptions()
 						name = "Enabled",
 						type = "toggle",
 						order = 1,
-						set = function (info, value)
-							if value then
-								-- Assume the default value "RAID" if checked
-								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, "RAID")
-							else
-								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, "NONE")
-							end
-						end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) ~= "NONE" end,
+						set = function (info, value) Thaliz.db.profile.public.enabled = value end,
+						get = function (value) return Thaliz.db.profile.public.enabled end,
 					},
 					channel = {
 						name = "Broadcast channel",
@@ -185,30 +167,24 @@ local function GetOptions()
 						values = { RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
 						order = 2,
 						width = "normal",
-						hidden = isWarnPeopleDisabled,
-						set = function (info, value) Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL, value) end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_CHANNEL) end,
+						hidden = not Thaliz.db.profile.public.enabled,
+						set = function (info, value) Thaliz.db.profile.public.message = value end,
+						get = function (value) return Thaliz.db.profile.public.message end,
 					},
 					includeEveryone = {
 						name = "Add messages for everyone to the list of targeted messages",
 						type = "toggle",
 						order = 3,
 						width = "full",
-						hidden = isWarnPeopleDisabled,
-						set = function (info, value)
-							if value then
-								Thaliz:SetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, 1)
-							else
-								Thaliz:SetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP, 0)
-							end
-						end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_ALWAYS_INCLUDE_DEFAULT_GROUP) == 1 end,
+						hidden = not Thaliz.db.profile.public.enabled,
+						set = function (info, value) Thaliz.db.profile.public.includeEveryone = value end,
+						get = function (value) return Thaliz.db.profile.public.includeEveryone end,
 					},
 					messages = {
 						name = "Messages",
 						type = "group",
 						order = 4,
-						hidden = isWarnPeopleDisabled,
+						hidden = not Thaliz.db.profile.public.enabled,
 						args = {},
 					},
 					addMessage = {
@@ -217,17 +193,15 @@ local function GetOptions()
 						type = "input",
 						order = -1,
 						width = "full",
-						hidden = isWarnPeopleDisabled,
+						hidden = not Thaliz.db.profile.public.enabled,
 						set = function (info, value)
-							local messageQty = table.getn(Thaliz:GetResurrectionMessages())
+							local messageQty = table.getn(Thaliz.db.profile.public.messages)
 
 							local index = messageQty + 1
 
-							Thaliz:UpdateResurrectionMessage(index, 0, value)
+							Thaliz.db.profile.public.messages[index] = { value, Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
 
-							local message = Thaliz:GetResurrectionMessage(index)
-
-							info.options.args.public.args.messages.args["message" .. index] = Thaliz:createMessageGroupOption(index, message)
+							info.options.args.public.args.messages.args["message" .. index] = CreateMessageGroupOption(index, value)
 						end,
 					},
 				},
@@ -242,48 +216,42 @@ local function GetOptions()
 						name = "Enabled",
 						type = "toggle",
 						order = 1,
-						set = function (info, value)
-							if value then
-								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, 1)
-							else
-								Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER, 0)
-							end
-						end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_MESSAGE_TARGET_WHISPER) == 1 end,
+						set = function (info, value) Thaliz.db.profile.private.enabled = value end,
+						get = function (value) return Thaliz.db.profile.private.enabled end,
 					},
 					message = {
 						name = "Message",
 						type = "input",
 						order = 2,
 						width = "full",
-						hidden = isTargetWhisperDisabled,
-						set = function (info, value) Thaliz:SetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE, value) end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.OPTION_RESURRECTION_WHISPER_MESSAGE) end,
+						hidden = not Thaliz.db.profile.private.enabled,
+						set = function (info, value) Thaliz.db.profile.private.message = value end,
+						get = function (value) return Thaliz.db.profile.private.message end,
 					},
 				},
 			},
-			profile = {
-				name = "Profile",
-				type = "group",
-				order = 3,
-				cmdHidden = true,
-				args = {
-					macro = {
-						name = "Store message's per Character",
-						type = "toggle",
-						order = 1,
-						width = "full",
-						set = function (info, value)
-							if value then
-								Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Character")
-							else
-								Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Realm")
-							end
-						end,
-						get = function (value) return Thaliz:GetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS) == "Character" end,
-					},
-				},
-			},
+			-- profile = {
+			-- 	name = "Profile",
+			-- 	type = "group",
+			-- 	order = 3,
+			-- 	cmdHidden = true,
+			-- 	args = {
+			-- 		macro = {
+			-- 			name = "Store message's per Character",
+			-- 			type = "toggle",
+			-- 			order = 1,
+			-- 			width = "full",
+			-- 			set = function (info, value)
+			-- 				if value then
+			-- 					Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Character")
+			-- 				else
+			-- 					Thaliz:SetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS, "Realm")
+			-- 				end
+			-- 			end,
+			-- 			get = function (value) return Thaliz:GetOption(Thaliz.constant.ROOT_OPTION_CHARACTER_BASED_SETTINGS) == "Character" end,
+			-- 		},
+			-- 	},
+			-- },
 			about = {
 				name = "About",
 				type = "group",
@@ -316,30 +284,45 @@ local function GetOptions()
 					},
 				},
 			},
+			debug = {
+				name = "Debug",
+				type = "group",
+				order = 5,
+				args = {
+					enabled = {
+						name = "Enabled",
+						type = "toggle",
+						order = 1,
+						width = "full",
+						set = function (info, value) Thaliz.db.profile.debug.enabled = value end,
+						get = function (value) return Thaliz.db.profile.debug.enabled end,
+					},
+					functionName = {
+						name = "Function name",
+						type = "select",
+						order = 2,
+						values = { None = "None", ScanRaid = "ScanRaid", InitClassSpecificStuff = "InitClassSpecificStuff", GetClassinfo = "GetClassinfo", OnEvent = "OnEvent" },
+						width = "normal",
+						hidden = not Thaliz.db.profile.debug.enabled,
+						set = function (info, value) Thaliz.db.profile.debug.functionName = value end,
+						get = function (value) return Thaliz.db.profile.debug.functionName end,
+					},
+					scanFrequency = {
+						name = "Scan frequency (per seconds)",
+						type = "input",
+						order = 3,
+						hidden = not Thaliz.db.profile.debug.enabled,
+						set = function (info, value) Thaliz.db.profile.debug.scanFrequency = 1 / value end,
+						get = function (value) return Thaliz.db.profile.debug.scanFrequency end,
+					}
+				},
+			},
 			config = {
 				name = "Configuration",
 				desc = "Show/Hide configuration options",
 				type = "execute",
 				guiHidden = true,
 				func = function (info) LibStub("AceConfigDialog-3.0"):Open(_) end,
-			},
-			debug = {
-				name = "Debug",
-				desc = "Debug a Thaliz method",
-				type = "input",
-				pattern = "(%S*)",
-				hidden = true,
-				set = function (info, value)
-					if value and value ~= '' then
-						Thaliz:Echo(string.format("Enabling debug for %s", value))
-						ThalizScanFrequency = 1.0
-						Thaliz_DebugFunction = value
-					else
-						Thaliz:Echo("Disabling debug")
-						ThalizScanFrequency = 0.2
-						Thaliz_DebugFunction = nil
-					end
-				end,
 			},
 			version = {
 				name = "Version",
@@ -358,8 +341,7 @@ local function GetOptions()
 	}
 
 	-- Populate the resurrection messages box
-	local messages = Thaliz:GetResurrectionMessages()
-	for index in ipairs(messages) do
+	for index in ipairs(Thaliz.db.profile.public.messages) do
 		local messageGroupOption = CreateMessageGroupOption(index)
 
 		options.args.public.args.messages.args["message" .. index] = messageGroupOption
