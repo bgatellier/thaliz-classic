@@ -168,8 +168,8 @@ local function GetOptions()
 						order = 2,
 						width = "normal",
 						hidden = not Thaliz.db.profile.public.enabled,
-						set = function (info, value) Thaliz.db.profile.public.message = value end,
-						get = function (value) return Thaliz.db.profile.public.message end,
+						set = function (info, value) Thaliz.db.profile.public.channel = value end,
+						get = function (value) return Thaliz.db.profile.public.channel end,
 					},
 					includeEveryone = {
 						name = L["Add messages for everyone to the list of targeted messages"],
