@@ -30,7 +30,7 @@ local function CreateMessageGroupOption(index)
 		order = index,
 		args = {
 			message = {
-				name = "Message",
+				name = L["Message"],
 				type = "input",
 				order = 1,
 				width = "full",
@@ -38,15 +38,15 @@ local function CreateMessageGroupOption(index)
 				get = function (value) return Thaliz.db.profile.public.messages[index][1] end,
 			},
 			group = {
-				name = "Use it for",
+				name = L["Use it for"],
 				type = "select",
 				order = 2,
 				values = {
-					[Thaliz.constant.EMOTE_GROUP_DEFAULT] = "Everyone",
-					[Thaliz.constant.EMOTE_GROUP_GUILD] = "a Guild",
-					[Thaliz.constant.EMOTE_GROUP_CHARACTER] = "a Character",
-					[Thaliz.constant.EMOTE_GROUP_CLASS] = "a Class",
-					[Thaliz.constant.EMOTE_GROUP_RACE] = "a Race",
+					[Thaliz.constant.EMOTE_GROUP_DEFAULT] = L["Everyone"],
+					[Thaliz.constant.EMOTE_GROUP_GUILD] = L["a Guild"],
+					[Thaliz.constant.EMOTE_GROUP_CHARACTER] = L["a Character"],
+					[Thaliz.constant.EMOTE_GROUP_CLASS] = L["a Class"],
+					[Thaliz.constant.EMOTE_GROUP_RACE] = L["a Race"],
 				},
 				set = function (info, value)
 					Thaliz.db.profile.public.messages[index][2] = value
@@ -60,8 +60,8 @@ local function CreateMessageGroupOption(index)
 				get = function (value) return Thaliz.db.profile.public.messages[index][2] end,
 			},
 			groupValue = {
-				name = "who/which is",
-				desc = "For the class or race selector use the english language (e.g. hunter, dwarf...",
+				name = L["who/which is"],
+				desc = L["For the class or race selector use the english language (e.g. hunter, dwarf...)"],
 				type = "input",
 				disabled = function () return Thaliz.db.profile.public.messages[index][2] == Thaliz.constant.EMOTE_GROUP_DEFAULT end,
 				order = 3,
@@ -129,7 +129,7 @@ local function CreateMessageGroupOption(index)
 				get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
 			},
 			delete = {
-				name = "Delete this message",
+				name = L["Delete this message"],
 				type = "execute",
 				func = function (info)
 					-- Remove from the memory
@@ -149,22 +149,22 @@ local function GetOptions()
 		childGroups = "tab",
 		args = {
 			public = {
-				name = "Public messages",
+				name = L["Public Messages"],
 				type = "group",
 				order = 1,
 				cmdHidden = true,
 				args = {
 					enabled = {
-						name = "Enabled",
+						name = L["Enabled"],
 						type = "toggle",
 						order = 1,
 						set = function (info, value) Thaliz.db.profile.public.enabled = value end,
 						get = function (value) return Thaliz.db.profile.public.enabled end,
 					},
 					channel = {
-						name = "Broadcast channel",
+						name = L["Broadcast channel"],
 						type = "select",
-						values = { RAID = "Raid/Party", SAY = "Say", YELL = "Yell" },
+						values = { RAID = L["Raid/Party"], SAY = L["Say"], YELL = L["Yell"] },
 						order = 2,
 						width = "normal",
 						hidden = not Thaliz.db.profile.public.enabled,
@@ -172,7 +172,7 @@ local function GetOptions()
 						get = function (value) return Thaliz.db.profile.public.message end,
 					},
 					includeEveryone = {
-						name = "Add messages for everyone to the list of targeted messages",
+						name = L["Add messages for everyone to the list of targeted messages"],
 						type = "toggle",
 						order = 3,
 						width = "full",
@@ -181,15 +181,15 @@ local function GetOptions()
 						get = function (value) return Thaliz.db.profile.public.includeEveryone end,
 					},
 					messages = {
-						name = "Messages",
+						name = L["Messages"],
 						type = "group",
 						order = 4,
 						hidden = not Thaliz.db.profile.public.enabled,
 						args = {},
 					},
 					addMessage = {
-						name = "Add a new message",
-						usage = "Once your message has been added, you can change its group and group value.",
+						name = L["Add a new message"],
+						usage = L["Once your message has been added, you can change its group and group value."],
 						type = "input",
 						order = -1,
 						width = "full",
@@ -207,20 +207,20 @@ local function GetOptions()
 				},
 			},
 			private = {
-				name = "Private message",
+				name = L["Private message"],
 				type = "group",
 				order = 2,
 				cmdHidden = true,
 				args = {
 					enabled = {
-						name = "Enabled",
+						name = L["Enabled"],
 						type = "toggle",
 						order = 1,
 						set = function (info, value) Thaliz.db.profile.private.enabled = value end,
 						get = function (value) return Thaliz.db.profile.private.enabled end,
 					},
 					message = {
-						name = "Message",
+						name = L["Message"],
 						type = "input",
 						order = 2,
 						width = "full",
@@ -253,7 +253,7 @@ local function GetOptions()
 			-- 	},
 			-- },
 			about = {
-				name = "About",
+				name = L["About"],
 				type = "group",
 				order = 4,
 				cmdHidden = true,
@@ -266,31 +266,31 @@ local function GetOptions()
 					},
 					version = {
 						type = "description",
-						name = string.format("\nVersion %s", GetAddOnMetadata(_, "Version")),
+						name = string.format("\n" .. L["Version %s"], GetAddOnMetadata(_, "Version")),
 						fontSize = "medium",
 						order = 2,
 					},
 					authors = {
 						type = "description",
-						name = string.format("\nBy %s", GetAddOnMetadata(_, "Author")),
+						name = string.format("\n" .. L["By %s"], GetAddOnMetadata(_, "Author")),
 						fontSize = "medium",
 						order = 3,
 					},
 					repository = {
 						type = "description",
-						name = string.format("\nDownload the latest version at %s", GetAddOnMetadata(_, "X-Website")),
+						name = string.format("\n" .. L["Download the latest version at %s"], GetAddOnMetadata(_, "X-Website")),
 						fontSize = "medium",
 						order = 4,
 					},
 				},
 			},
 			debug = {
-				name = "Debug",
+				name = L["Debug"],
 				type = "group",
 				order = 5,
 				args = {
 					enabled = {
-						name = "Enabled",
+						name = L["Enabled"],
 						type = "toggle",
 						order = 1,
 						width = "full",
@@ -298,17 +298,17 @@ local function GetOptions()
 						get = function (value) return Thaliz.db.profile.debug.enabled end,
 					},
 					functionName = {
-						name = "Function name",
+						name = L["Function name"],
 						type = "select",
 						order = 2,
-						values = { None = "None", ScanRaid = "ScanRaid", InitClassSpecificStuff = "InitClassSpecificStuff", GetClassinfo = "GetClassinfo", OnEvent = "OnEvent" },
+						values = { None = L["None"], ScanRaid = "ScanRaid", InitClassSpecificStuff = "InitClassSpecificStuff", GetClassinfo = "GetClassinfo", OnEvent = "OnEvent" },
 						width = "normal",
 						hidden = not Thaliz.db.profile.debug.enabled,
 						set = function (info, value) Thaliz.db.profile.debug.functionName = value end,
 						get = function (value) return Thaliz.db.profile.debug.functionName end,
 					},
 					scanFrequency = {
-						name = "Scan frequency (per seconds)",
+						name = L["Scan frequency (per seconds)"],
 						type = "input",
 						order = 3,
 						hidden = not Thaliz.db.profile.debug.enabled,
@@ -318,22 +318,22 @@ local function GetOptions()
 				},
 			},
 			config = {
-				name = "Configuration",
-				desc = "Show/Hide configuration options",
+				name = L["Configuration"],
+				desc = L["Show/Hide configuration options"],
 				type = "execute",
 				guiHidden = true,
 				func = function (info) LibStub("AceConfigDialog-3.0"):Open(_) end,
 			},
 			version = {
-				name = "Version",
-				desc = "Displays Thaliz version",
+				name = L["Version"],
+				desc = L["Displays Thaliz version"],
 				type = "execute",
 				guiHidden = true,
 				func = function()
 					if IsInRaid() or Thaliz:IsInParty() then
 						Thaliz:SendAddonMessage("TX_VERSION##")
 					else
-						Thaliz:Echo(string.format("version %s by %s", GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
+						Thaliz:Echo(string.format(L["version %s by %s"], GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
 					end
 				end
 			},
