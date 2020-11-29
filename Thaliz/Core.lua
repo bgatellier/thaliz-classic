@@ -66,11 +66,11 @@ local function GetDefaultsDb()
 			},
 			private = {
 				enabled = true,
-				message = L["Private message"]
+				message = L["Resurrection incoming in 10 seconds!"]
 			},
 			debug = {
 				enabled = false,
-				functionName = "None",
+				functionName = L["None"],
 				scanFrequency = 0.2 -- Scan 5 times per second
 			}
 		}
