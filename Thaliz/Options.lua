@@ -1,11 +1,79 @@
 local _, Thaliz = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(_, true)
+local playerFaction = UnitFactionGroup("player")
 
+-- List the classes the player is able to choose
+local function GetClasses()
+	local classes = {
+		["Druid"] = L["Druid"],
+		["Hunter"] = L["Hunter"],
+		["Mage"] = L["Mage"],
+		["Priest"] = L["Priest"],
+		["Rogue"] = L["Rogue"],
+		["Warlock"] = L["Warlock"],
+		["Warrior"] = L["Warrior"],
+	}
+
+	if (playerFaction == "Alliance") then
+		classes["Paladin"] = L["Paladin"]
+	else
+		classes["Shaman"] = L["Shaman"]
+	end
+
+	return classes
+end
+
+-- List the races the player is able to choose
+local function GetRaces()
+	if (playerFaction == "Alliance") then
+		return {
+			["Dwarf"] = L["Dwarf"],
+			["Gnome"] = L["Gnome"],
+			["Human"] = L["Human"],
+			["Night elf"] = L["Night elf"],
+		}
+	else
+		return {
+			["Orc"] = L["Orc"],
+			["Tauren"] = L["Tauren"],
+			["Troll"] = L["Troll"],
+			["Undead"] = L["Undead"],
+		}
+	end
+end
+
+local function CreateMessageGroupValueOption(index)
+	-- get the selected group
+	local group = Thaliz.db.profile.public.messages[index][2]
+
+	-- create the default option table
+	local option = {
+		name = "",
+		type = "input",
+		hidden = group == Thaliz.constant.EMOTE_GROUP_DEFAULT,
+		order = 3,
+		set = function (info, value) Thaliz.db.profile.public.messages[index][3] = value end,
+		get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
+	}
+
+	-- Change the option type for a select if the group is a class or a race, and add the values
+	if group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
+		local keysValues
+
+		if group == Thaliz.constant.EMOTE_GROUP_CLASS then
+			keysValues = GetClasses()
+		elseif group == Thaliz.constant.EMOTE_GROUP_RACE then
+			keysValues = GetRaces()
+		end
+
+		option.type = "select"
+		option.values = keysValues
+	end
+
+	return option
+end
 
 local function CreateMessageGroupOption(index)
-	local groupClassesAllowed = { "Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior" }
-	local groupRacesAllowed = { "Dwarf", "Gnome", "Human", "Night elf", "Orc", "Tauren", "Troll", "Undead" }
-
 	return {
 		name = function (info)
 			local message = Thaliz.db.profile.public.messages[index]
@@ -53,84 +121,15 @@ local function CreateMessageGroupOption(index)
 
 					-- Reset the value of the groupValue option
 					Thaliz.db.profile.public.messages[index][3] = ""
-
-					-- Enable/disable the groupValue option
-					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == Thaliz.constant.EMOTE_GROUP_DEFAULT)
 				end,
 				get = function (value) return Thaliz.db.profile.public.messages[index][2] end,
 			},
-			groupValue = {
-				name = L["who/which is"],
-				desc = L["For the class or race selector use the english language (e.g. hunter, dwarf...)"],
-				type = "input",
-				disabled = function () return Thaliz.db.profile.public.messages[index][2] == Thaliz.constant.EMOTE_GROUP_DEFAULT end,
-				order = 3,
-				width = "full",
-				set = function (info, value)
-					local group = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					-- Allow both "nightelf" and "night elf".
-					-- This weird construction ensures all are shown with capital first letter.
-					if (group == Thaliz.constant.EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
-						value = "night elf"
-					end
-
-					if group == Thaliz.constant.EMOTE_GROUP_CHARACTER or group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
-						value = UCFirst(value)
-					end
-
-					Thaliz.db.profile.public.messages[index][3] = value
-				end,
-				validate = function (info, value)
-					local allowedValues = {}
-					local standardizedInput = value
-					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					if (selectedGroup == Thaliz.constant.EMOTE_GROUP_CLASS) then
-						allowedValues = groupClassesAllowed
-						standardizedInput = UCFirst(standardizedInput)
-					elseif (selectedGroup == Thaliz.constant.EMOTE_GROUP_RACE) then
-						allowedValues = groupRacesAllowed
-
-						-- Allow both "nightelf" and "night elf".
-						-- This weird construction ensures all are shown with capital first letter.
-						if string.upper(standardizedInput) == "NIGHTELF" or string.upper(standardizedInput) == "NIGHT ELF" then
-							standardizedInput = "night elf"
-						end
-
-						standardizedInput = UCFirst(standardizedInput)
-					end
-
-					local allowedValuesQty = table.getn(allowedValues)
-
-					-- Nothing to validate: returns validation OK
-					if (allowedValuesQty == 0) then return true end
-
-					local isValidInput = InNumericTable(standardizedInput, allowedValues)
-
-					-- Input is valid: returns validation OK
-					if (isValidInput) then return true end
-
-					-- Input is invalid: build and returns the error message
-					local error = "The value must be one of: "
-
-					for k, allowedValue in ipairs(allowedValues) do
-						error = error .. allowedValue
-
-						if (k < allowedValuesQty) then
-							error = error .. ", "
-						else
-							error = error .. "."
-						end
-					end
-
-					return error
-				end,
-				get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
-			},
+			groupValue = CreateMessageGroupValueOption(index, Thaliz.db.profile.public.messages[index][2]),
 			delete = {
 				name = L["Delete this message"],
 				type = "execute",
+				order = 4,
+				width = "full",
 				func = function (info)
 					-- Remove from the memory
 					Thaliz.db.profile.public.messages.remove(index)
