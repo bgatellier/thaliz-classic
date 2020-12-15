@@ -28,13 +28,13 @@ L["Default Messages"] = {
 	"(Résurrection) Seules la chair et les os. Les %cs sont des proies si faciles…"						     ,	-- Empereur Vek'lor
 	"(Résurrection) Tes amis vont t'abandonner, %s."										                     ,	-- C'Thun
 	-- Naxx
-	"(Résurrection) Chut, %s… Ce sera bientôt fini."											                 ,	-- Anub'Rekhan
+	"(Résurrection) Shhh, %s… Ce sera bientôt fini."											                 ,	-- Anub'Rekhan
 	"(Résurrection) Tuez %s au nom du maître !" 										                         ,	-- Grande veuve Faerlina
 	"(Résurrection) Levez-vous, %s ! Levez-vous et combattez une fois encore !"			                     ,	-- Noth le Porte-peste
 	"(Résurrection) Tu aurais dû rester chez toi, %s."									                     ,	-- Instructeur Razuvious
 	"(Résurrection) La mort est la seule issue, %s !"									                     ,	-- Gothik le Moissonneur
 	"(Résurrection) À moi la première résurrection ! Qui prend le pari ?"								     ,	-- Dame Blaumeux (Quatre Cavaliers)
-	"(Résurrection) On joue plus, %s ?"									                                     ,	-- Le Recousu
+	"(Résurrection) Plus jouer, %s ?"									                                     ,	-- Le Recousu
 	"(Résurrection) %s, vous arrivez trop tard… Je… dois… OBÉIR !"									         ,	-- Thaddius
 }
 
