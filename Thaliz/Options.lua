@@ -58,16 +58,14 @@ local function CreateMessageGroupValueOption(index)
 
 	-- Change the option type for a select if the group is a class or a race, and add the values
 	if group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
-		local keysValues
+		option.type = "select"
 
 		if group == Thaliz.constant.EMOTE_GROUP_CLASS then
-			keysValues = GetClasses()
+			option.values = GetClasses()
 		else -- this else means: group == Thaliz.constant.EMOTE_GROUP_RACE
-			keysValues = GetRaces()
+			option.values = GetRaces()
 		end
 
-		option.type = "select"
-		option.values = keysValues
 		option.sorting = KeysSortedByAlphabeticallySortedValues(keysValues)
 	end
 
