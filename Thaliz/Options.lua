@@ -1,25 +1,108 @@
 local _, Thaliz = ...
 local L = LibStub("AceLocale-3.0"):GetLocale(_, true)
+local playerFaction = UnitFactionGroup("player")
 
+-- List the classes the player is able to choose
+local function GetClasses()
+	local classes = {
+		["Druid"] = L["Druid"],
+		["Hunter"] = L["Hunter"],
+		["Mage"] = L["Mage"],
+		["Priest"] = L["Priest"],
+		["Rogue"] = L["Rogue"],
+		["Warlock"] = L["Warlock"],
+		["Warrior"] = L["Warrior"],
+	}
+
+	if (playerFaction == "Alliance") then
+		classes["Paladin"] = L["Paladin"]
+	else
+		classes["Shaman"] = L["Shaman"]
+	end
+
+	return classes
+end
+
+-- List the races the player is able to choose
+local function GetRaces()
+	if (playerFaction == "Alliance") then
+		return {
+			["Dwarf"] = L["Dwarf"],
+			["Gnome"] = L["Gnome"],
+			["Human"] = L["Human"],
+			["Night elf"] = L["Night elf"],
+		}
+	else
+		return {
+			["Orc"] = L["Orc"],
+			["Tauren"] = L["Tauren"],
+			["Troll"] = L["Troll"],
+			["Undead"] = L["Undead"],
+		}
+	end
+end
+
+local function CreateMessageTargetValueOption(index)
+	-- get the selected target
+	local target = Thaliz.db.profile.public.messages[index][2]
+
+	-- create the default option table
+	local option = {
+		name = "",
+		type = "input",
+		hidden = target == Thaliz.constant.MESSAGE_TARGET_DEFAULT,
+		order = 3,
+		set = function (info, value) Thaliz.db.profile.public.messages[index][3] = value end,
+		get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
+	}
+
+	-- Change the option type for a select if the target is a class or a race, and add the values
+	if target == Thaliz.constant.MESSAGE_TARGET_CLASS or target == Thaliz.constant.MESSAGE_TARGET_RACE then
+		option.type = "select"
+
+		if target == Thaliz.constant.MESSAGE_TARGET_CLASS then
+			option.values = GetClasses()
+		else -- this else means: target == Thaliz.constant.MESSAGE_TARGET_RACE
+			option.values = GetRaces()
+		end
+
+		option.sorting = KeysSortedByAlphabeticallySortedValues(option.values)
+	end
+
+	return option
+end
+
+-- sort the numeric-indexed table for message target order, by putting the "everyone" entry first
+local function sortMessageTargetByEveryOneFirst(i, j)
+	return j ~= Thaliz.constant.MESSAGE_TARGET_DEFAULT and i ~= nil
+end
 
 local function CreateMessageGroupOption(index)
-	local groupClassesAllowed = { "Druid", "Hunter", "Mage", "Paladin", "Priest", "Rogue", "Shaman", "Warlock", "Warrior" }
-	local groupRacesAllowed = { "Dwarf", "Gnome", "Human", "Night elf", "Orc", "Tauren", "Troll", "Undead" }
+	local target = {
+		[Thaliz.constant.MESSAGE_TARGET_DEFAULT] = L["Everyone"],
+		[Thaliz.constant.MESSAGE_TARGET_GUILD] = L["a Guild"],
+		[Thaliz.constant.MESSAGE_TARGET_CHARACTER] = L["a Character"],
+		[Thaliz.constant.MESSAGE_TARGET_CLASS] = L["a Class"],
+		[Thaliz.constant.MESSAGE_TARGET_RACE] = L["a Race"],
+	}
+
+	local targetSorting = KeysSortedByAlphabeticallySortedValues(target)
+	table.sort(targetSorting, sortMessageTargetByEveryOneFirst)
 
 	return {
 		name = function (info)
 			local message = Thaliz.db.profile.public.messages[index]
 
-			local group = message[2]
-			local groupValue = message[3]
+			local t = message[2]
+			local tValue = message[3]
 			local rgbColor = "ff808080"
 
-			if (group == Thaliz.constant.EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
-			elseif (group == Thaliz.constant.EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
-			elseif (group == Thaliz.constant.EMOTE_GROUP_CLASS and Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
-			elseif (group == Thaliz.constant.EMOTE_GROUP_RACE) then
-				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
-				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
+			if (t == Thaliz.constant.MESSAGE_TARGET_GUILD) then rgbColor = "ff00ff00"
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_CHARACTER) then rgbColor = "ffcccccc"
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_CLASS and Thaliz.constant.RAID_CLASS_COLORS[string.upper(tValue)] ~= nil ) then rgbColor = Thaliz.constant.RAID_CLASS_COLORS[string.upper(tValue)].colorStr
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_RACE) then
+				if (tValue == "Dwarf" or tValue == "Gnome" or tValue == "Human" or tValue == "Night elf") then rgbColor = "ff0080ff"
+				elseif (tValue == "Orc" or tValue == "Tauren" or tValue == "Troll" or tValue == "Undead") then rgbColor = "ffff0000"
 				else rgbColor = "ffcc00ff"
 				end
 			end
@@ -37,102 +120,28 @@ local function CreateMessageGroupOption(index)
 				set = function (info, value) Thaliz.db.profile.public.messages[index][1] = value end,
 				get = function (value) return Thaliz.db.profile.public.messages[index][1] end,
 			},
-			group = {
+			target = {
 				name = L["Use it for"],
 				type = "select",
 				order = 2,
-				values = {
-					[Thaliz.constant.EMOTE_GROUP_DEFAULT] = L["Everyone"],
-					[Thaliz.constant.EMOTE_GROUP_GUILD] = L["a Guild"],
-					[Thaliz.constant.EMOTE_GROUP_CHARACTER] = L["a Character"],
-					[Thaliz.constant.EMOTE_GROUP_CLASS] = L["a Class"],
-					[Thaliz.constant.EMOTE_GROUP_RACE] = L["a Race"],
-				},
+				values = target,
+				sorting = targetSorting,
 				set = function (info, value)
 					Thaliz.db.profile.public.messages[index][2] = value
 
-					-- Reset the value of the groupValue option
+					-- Reset the value of the targetValue option
 					Thaliz.db.profile.public.messages[index][3] = ""
-
-					-- Enable/disable the groupValue option
-					info.options.args.public.args.messages.args["message" .. index].args.groupValue.disabled = (value == Thaliz.constant.EMOTE_GROUP_DEFAULT)
 				end,
 				get = function (value) return Thaliz.db.profile.public.messages[index][2] end,
 			},
-			groupValue = {
-				name = L["who/which is"],
-				desc = L["For the class or race selector use the english language (e.g. hunter, dwarf...)"],
-				type = "input",
-				disabled = function () return Thaliz.db.profile.public.messages[index][2] == Thaliz.constant.EMOTE_GROUP_DEFAULT end,
-				order = 3,
-				width = "full",
-				set = function (info, value)
-					local group = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					-- Allow both "nightelf" and "night elf".
-					-- This weird construction ensures all are shown with capital first letter.
-					if (group == Thaliz.constant.EMOTE_GROUP_RACE and string.upper(value) == "NIGHTELF" or string.upper(value) == "NIGHT ELF") then
-						value = "night elf"
-					end
-
-					if group == Thaliz.constant.EMOTE_GROUP_CHARACTER or group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
-						value = UCFirst(value)
-					end
-
-					Thaliz.db.profile.public.messages[index][3] = value
-				end,
-				validate = function (info, value)
-					local allowedValues = {}
-					local standardizedInput = value
-					local selectedGroup = info.options.args.public.args.messages.args["message" .. index].args.group.get()
-
-					if (selectedGroup == Thaliz.constant.EMOTE_GROUP_CLASS) then
-						allowedValues = groupClassesAllowed
-						standardizedInput = UCFirst(standardizedInput)
-					elseif (selectedGroup == Thaliz.constant.EMOTE_GROUP_RACE) then
-						allowedValues = groupRacesAllowed
-
-						-- Allow both "nightelf" and "night elf".
-						-- This weird construction ensures all are shown with capital first letter.
-						if string.upper(standardizedInput) == "NIGHTELF" or string.upper(standardizedInput) == "NIGHT ELF" then
-							standardizedInput = "night elf"
-						end
-
-						standardizedInput = UCFirst(standardizedInput)
-					end
-
-					local allowedValuesQty = table.getn(allowedValues)
-
-					-- Nothing to validate: returns validation OK
-					if (allowedValuesQty == 0) then return true end
-
-					local isValidInput = InNumericTable(standardizedInput, allowedValues)
-
-					-- Input is valid: returns validation OK
-					if (isValidInput) then return true end
-
-					-- Input is invalid: build and returns the error message
-					local error = "The value must be one of: "
-
-					for k, allowedValue in ipairs(allowedValues) do
-						error = error .. allowedValue
-
-						if (k < allowedValuesQty) then
-							error = error .. ", "
-						else
-							error = error .. "."
-						end
-					end
-
-					return error
-				end,
-				get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
-			},
+			targetValue = CreateMessageTargetValueOption(index, Thaliz.db.profile.public.messages[index][2]),
 			delete = {
 				name = L["Delete this message"],
 				type = "execute",
+				order = 4,
+				width = "full",
 				func = function (info)
-					-- Remove from the memory
+					-- Remove from the database
 					Thaliz.db.profile.public.messages.remove(index)
 
 					-- Remove from the options / GUI
@@ -199,7 +208,7 @@ local function GetOptions()
 
 							local index = messageQty + 1
 
-							Thaliz.db.profile.public.messages[index] = { value, Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
+							Thaliz.db.profile.public.messages[index] = { value, Thaliz.constant.MESSAGE_TARGET_DEFAULT, "" }
 
 							info.options.args.public.args.messages.args["message" .. index] = CreateMessageGroupOption(index, value)
 						end,

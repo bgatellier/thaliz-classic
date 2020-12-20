@@ -59,7 +59,7 @@ local function GetDefaultsDb()
 				messages = {
 					['*'] = {
 						message = "",
-						group = Thaliz.constant.EMOTE_GROUP_DEFAULT,
+						group = Thaliz.constant.MESSAGE_TARGET_DEFAULT,
 						groupValue = "",
 					}
 				}
@@ -78,7 +78,7 @@ local function GetDefaultsDb()
 
 	-- Add default messages
 	for key, message in pairs(L["Default Messages"]) do
-		default.profile.public.messages[key] = { message, Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
+		default.profile.public.messages[key] = { message, Thaliz.constant.MESSAGE_TARGET_DEFAULT, "" }
 	end
 
 	return default
@@ -220,25 +220,25 @@ function Thaliz:AnnounceResurrection(playername, unitid)
 			param = string.upper(macro[3])
 		end
 
-		if macro[2] == Thaliz.constant.EMOTE_GROUP_DEFAULT then
+		if macro[2] == Thaliz.constant.MESSAGE_TARGET_DEFAULT then
 			didx = didx + 1
 			dmacro[ didx ] = macro
-		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_GUILD then
+		elseif macro[2] == Thaliz.constant.MESSAGE_TARGET_GUILD then
 			if param == UCGuildname then
 				gidx = gidx + 1
 				gmacro[ gidx ] = macro
 			end
-		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_CHARACTER then
+		elseif macro[2] == Thaliz.constant.MESSAGE_TARGET_CHARACTER then
 			if param == charname then
 				nidx = nidx + 1
 				nmacro[ nidx ] = macro
 			end
-		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_CLASS then
+		elseif macro[2] == Thaliz.constant.MESSAGE_TARGET_CLASS then
 			if param == classname then
 				cidx = cidx + 1
 				cmacro[ cidx ] = macro
 			end
-		elseif macro[2] == Thaliz.constant.EMOTE_GROUP_RACE then
+		elseif macro[2] == Thaliz.constant.MESSAGE_TARGET_RACE then
 			if param == race then
 				ridx = ridx + 1
 				rmacro[ ridx ] = macro

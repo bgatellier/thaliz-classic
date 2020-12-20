@@ -51,4 +51,31 @@ end
 
 function BeginsWith(String, Start)
     return string.sub(String, 1, string.len(Start)) == Start
- end
+end
+
+
+-- Get the list (numeric indexed) of table keys in the same order as the alphabetically sorted values.
+-- @param t Table where keys are non-numeric. Example: { "p" = "Priest", "m" = "Mage", "h" = "Hunter" }
+-- @return Example: { "h", "m", "p" }
+function KeysSortedByAlphabeticallySortedValues(t)
+	local swapT = {}
+	local tSorted = {}
+	local values = {}
+
+	-- 1. Create a swapped table: keys become values and values become keys
+	-- 2. Create a table that holds only the values
+	for k, v in pairs(t) do
+		swapT[v] = k
+		table.insert(values, v)
+	end
+
+	-- Sort the values
+	table.sort(values)
+
+	-- Create the sorted table from the sorted value and the matching keys from the swapped table
+	for _, v in ipairs(values) do
+		table.insert(tSorted, swapT[v])
+	end
+
+	return tSorted
+end

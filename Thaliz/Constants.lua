@@ -16,11 +16,11 @@ Thaliz.constant = {
     ["MAX_VISIBLE_MESSAGES"]    = 20,
     ["EMPTY_MESSAGE"]			= "(Empty)",
 
-    ["EMOTE_GROUP_DEFAULT"]		= "Default",
-    ["EMOTE_GROUP_GUILD"]		= "Guild",
-    ["EMOTE_GROUP_CHARACTER"]	= "Name",
-    ["EMOTE_GROUP_CLASS"]		= "Class",
-    ["EMOTE_GROUP_RACE"]		= "Race",
+    ["MESSAGE_TARGET_DEFAULT"]		= "Default",
+    ["MESSAGE_TARGET_GUILD"]		= "Guild",
+    ["MESSAGE_TARGET_CHARACTER"]	= "Name",
+    ["MESSAGE_TARGET_CLASS"]		= "Class",
+    ["MESSAGE_TARGET_RACE"]		    = "Race",
 
     -- https://wow.gamepedia.com/Class_colors
     ["RAID_CLASS_COLORS"] = {
