@@ -73,7 +73,7 @@ local function CreateMessageTargetValueOption(index)
 end
 
 -- Sort the message target table keys by alphebetically-sorted values, except for the "everyone" key which appears first
-local function SortMessageTargetByEveryOneFirst(target)
+local function SortMessageTargetByEveryoneFirst(target)
 	local targetSorting = { Thaliz.constant.MESSAGE_TARGET_DEFAULT }
 
 	for _, value in ipairs(KeysSortedByAlphabeticallySortedValues(target)) do
@@ -131,7 +131,7 @@ local function CreateMessageGroupOption(index)
 				type = "select",
 				order = 2,
 				values = target,
-				sorting = SortMessageTargetByEveryOneFirst(target),
+				sorting = SortMessageTargetByEveryoneFirst(target),
 				set = function (info, value)
 					Thaliz.db.profile.public.messages[index][2] = value
 
