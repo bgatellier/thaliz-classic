@@ -72,9 +72,17 @@ local function CreateMessageTargetValueOption(index)
 	return option
 end
 
--- sort the numeric-indexed table for message target order, by putting the "everyone" entry first
-local function sortMessageTargetByEveryOneFirst(i, j)
-	return j ~= Thaliz.constant.MESSAGE_TARGET_DEFAULT and i ~= nil
+-- Sort the message target table keys by alphebetically-sorted values, except for the "everyone" key which appears first
+local function SortMessageTargetByEveryoneFirst(target)
+	local targetSorting = { Thaliz.constant.MESSAGE_TARGET_DEFAULT }
+
+	for _, value in ipairs(KeysSortedByAlphabeticallySortedValues(target)) do
+		if value ~=  Thaliz.constant.MESSAGE_TARGET_DEFAULT then
+			table.insert(targetSorting, value)
+		end
+	end
+
+	return targetSorting
 end
 
 local function CreateMessageGroupOption(index)
@@ -85,9 +93,6 @@ local function CreateMessageGroupOption(index)
 		[Thaliz.constant.MESSAGE_TARGET_CLASS] = L["a Class"],
 		[Thaliz.constant.MESSAGE_TARGET_RACE] = L["a Race"],
 	}
-
-	local targetSorting = KeysSortedByAlphabeticallySortedValues(target)
-	table.sort(targetSorting, sortMessageTargetByEveryOneFirst)
 
 	return {
 		name = function (info)
@@ -126,7 +131,7 @@ local function CreateMessageGroupOption(index)
 				type = "select",
 				order = 2,
 				values = target,
-				sorting = targetSorting,
+				sorting = SortMessageTargetByEveryoneFirst(target),
 				set = function (info, value)
 					Thaliz.db.profile.public.messages[index][2] = value
 
