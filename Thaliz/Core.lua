@@ -293,7 +293,7 @@ function Thaliz:AnnounceResurrection(playername, unitid)
 
 	local message = validMessages[ math.random(validCount) ]
 	message = string.gsub(message, "%%c", L[UCFirst(classFilename)])
-	message = string.gsub(message, "%%r", L[UCFirst(race)])
+	message = string.gsub(message, "%%r", UCFirst(race))
 	message = string.gsub(message, "%%g", guildname)
 	message = string.gsub(message, "%%p", playername)
 
