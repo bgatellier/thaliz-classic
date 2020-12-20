@@ -4,6 +4,8 @@
 * Add the french translation for the UI
 * The selection of the public messages classes and races can now be done using a dropdown menu (instead of having to write the races or classes names by hand
 * Settings are now saved in a simplified format, thanks to the AceDB library. The settings from Thaliz < 1.0 are automatically imported so you will not lost your favorites messages ;-)
+* Removed the welcome message, as the information can be found in the _About_ tab from the option panel
+* Add the contributors names after the author name in the _About_ tab from the option panel
 * The source code has been cleanup up
 
 # 0.6.0 (2020-12-02)
