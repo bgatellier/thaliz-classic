@@ -42,51 +42,67 @@ local function GetRaces()
 	end
 end
 
-local function CreateMessageGroupValueOption(index)
-	-- get the selected group
-	local group = Thaliz.db.profile.public.messages[index][2]
+local function CreateMessageTargetValueOption(index)
+	-- get the selected target
+	local target = Thaliz.db.profile.public.messages[index][2]
 
 	-- create the default option table
 	local option = {
 		name = "",
 		type = "input",
-		hidden = group == Thaliz.constant.EMOTE_GROUP_DEFAULT,
+		hidden = target == Thaliz.constant.MESSAGE_TARGET_DEFAULT,
 		order = 3,
 		set = function (info, value) Thaliz.db.profile.public.messages[index][3] = value end,
 		get = function (value) return Thaliz.db.profile.public.messages[index][3] end,
 	}
 
-	-- Change the option type for a select if the group is a class or a race, and add the values
-	if group == Thaliz.constant.EMOTE_GROUP_CLASS or group == Thaliz.constant.EMOTE_GROUP_RACE then
+	-- Change the option type for a select if the target is a class or a race, and add the values
+	if target == Thaliz.constant.MESSAGE_TARGET_CLASS or target == Thaliz.constant.MESSAGE_TARGET_RACE then
 		option.type = "select"
 
-		if group == Thaliz.constant.EMOTE_GROUP_CLASS then
+		if target == Thaliz.constant.MESSAGE_TARGET_CLASS then
 			option.values = GetClasses()
-		else -- this else means: group == Thaliz.constant.EMOTE_GROUP_RACE
+		else -- this else means: target == Thaliz.constant.MESSAGE_TARGET_RACE
 			option.values = GetRaces()
 		end
 
-		option.sorting = KeysSortedByAlphabeticallySortedValues(keysValues)
+		option.sorting = KeysSortedByAlphabeticallySortedValues(option.values)
 	end
 
 	return option
 end
 
+-- sort the numeric-indexed table for message target order, by putting the "everyone" entry first
+local function sortMessageTargetByEveryOneFirst(i, j)
+	return j ~= Thaliz.constant.MESSAGE_TARGET_DEFAULT and i ~= nil
+end
+
 local function CreateMessageGroupOption(index)
+	local target = {
+		[Thaliz.constant.MESSAGE_TARGET_DEFAULT] = L["Everyone"],
+		[Thaliz.constant.MESSAGE_TARGET_GUILD] = L["a Guild"],
+		[Thaliz.constant.MESSAGE_TARGET_CHARACTER] = L["a Character"],
+		[Thaliz.constant.MESSAGE_TARGET_CLASS] = L["a Class"],
+		[Thaliz.constant.MESSAGE_TARGET_RACE] = L["a Race"],
+	}
+
+	local targetSorting = KeysSortedByAlphabeticallySortedValues(target)
+	table.sort(targetSorting, sortMessageTargetByEveryOneFirst)
+
 	return {
 		name = function (info)
 			local message = Thaliz.db.profile.public.messages[index]
 
-			local group = message[2]
-			local groupValue = message[3]
+			local t = message[2]
+			local tValue = message[3]
 			local rgbColor = "ff808080"
 
-			if (group == Thaliz.constant.EMOTE_GROUP_GUILD) then rgbColor = "ff00ff00"
-			elseif (group == Thaliz.constant.EMOTE_GROUP_CHARACTER) then rgbColor = "ffcccccc"
-			elseif (group == Thaliz.constant.EMOTE_GROUP_CLASS and Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)] ~= nil ) then rgbColor = Thaliz.constant.RAID_CLASS_COLORS[string.upper(groupValue)].colorStr
-			elseif (group == Thaliz.constant.EMOTE_GROUP_RACE) then
-				if (groupValue == "Dwarf" or groupValue == "Gnome" or groupValue == "Human" or groupValue == "Night elf") then rgbColor = "ff0080ff"
-				elseif (groupValue == "Orc" or groupValue == "Tauren" or groupValue == "Troll" or groupValue == "Undead") then rgbColor = "ffff0000"
+			if (t == Thaliz.constant.MESSAGE_TARGET_GUILD) then rgbColor = "ff00ff00"
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_CHARACTER) then rgbColor = "ffcccccc"
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_CLASS and Thaliz.constant.RAID_CLASS_COLORS[string.upper(tValue)] ~= nil ) then rgbColor = Thaliz.constant.RAID_CLASS_COLORS[string.upper(tValue)].colorStr
+			elseif (t == Thaliz.constant.MESSAGE_TARGET_RACE) then
+				if (tValue == "Dwarf" or tValue == "Gnome" or tValue == "Human" or tValue == "Night elf") then rgbColor = "ff0080ff"
+				elseif (tValue == "Orc" or tValue == "Tauren" or tValue == "Troll" or tValue == "Undead") then rgbColor = "ffff0000"
 				else rgbColor = "ffcc00ff"
 				end
 			end
@@ -104,33 +120,28 @@ local function CreateMessageGroupOption(index)
 				set = function (info, value) Thaliz.db.profile.public.messages[index][1] = value end,
 				get = function (value) return Thaliz.db.profile.public.messages[index][1] end,
 			},
-			group = {
+			target = {
 				name = L["Use it for"],
 				type = "select",
 				order = 2,
-				values = {
-					[Thaliz.constant.EMOTE_GROUP_DEFAULT] = L["Everyone"],
-					[Thaliz.constant.EMOTE_GROUP_GUILD] = L["a Guild"],
-					[Thaliz.constant.EMOTE_GROUP_CHARACTER] = L["a Character"],
-					[Thaliz.constant.EMOTE_GROUP_CLASS] = L["a Class"],
-					[Thaliz.constant.EMOTE_GROUP_RACE] = L["a Race"],
-				},
+				values = target,
+				sorting = targetSorting,
 				set = function (info, value)
 					Thaliz.db.profile.public.messages[index][2] = value
 
-					-- Reset the value of the groupValue option
+					-- Reset the value of the targetValue option
 					Thaliz.db.profile.public.messages[index][3] = ""
 				end,
 				get = function (value) return Thaliz.db.profile.public.messages[index][2] end,
 			},
-			groupValue = CreateMessageGroupValueOption(index, Thaliz.db.profile.public.messages[index][2]),
+			targetValue = CreateMessageTargetValueOption(index, Thaliz.db.profile.public.messages[index][2]),
 			delete = {
 				name = L["Delete this message"],
 				type = "execute",
 				order = 4,
 				width = "full",
 				func = function (info)
-					-- Remove from the memory
+					-- Remove from the database
 					Thaliz.db.profile.public.messages.remove(index)
 
 					-- Remove from the options / GUI
@@ -197,7 +208,7 @@ local function GetOptions()
 
 							local index = messageQty + 1
 
-							Thaliz.db.profile.public.messages[index] = { value, Thaliz.constant.EMOTE_GROUP_DEFAULT, "" }
+							Thaliz.db.profile.public.messages[index] = { value, Thaliz.constant.MESSAGE_TARGET_DEFAULT, "" }
 
 							info.options.args.public.args.messages.args["message" .. index] = CreateMessageGroupOption(index, value)
 						end,
