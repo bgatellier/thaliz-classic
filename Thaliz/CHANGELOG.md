@@ -1,4 +1,4 @@
-# 1.0.0-alpha.1
+# 1.0.0-alpha.1 (xxxx-xx-xx)
 * The resurrected player classname displayed in the public messages are now translated
 * Debug options are now accessible with the options panel
 * Add the french translation for the UI
@@ -6,8 +6,8 @@
 * Settings are now saved in a simplified format, thanks to the AceDB library. The settings from Thaliz < 1.0 are automatically imported so you will not lost your favorites messages ;-)
 * The source code has been cleanup up
 
-# classic-0.6.0 (2020-xx-xx)
-* Thaliz now works in 8 languages and has a French translation (UI and resurrection messages)
+# 0.6.0 (2020-12-02)
+* Thaliz now works in 8 languages and has a French translation for the default resurrection messages
 * The number of messages is no more limited to 200
 * The configuration panel and the CLI has been reworked:
   * The configuration panel is now available in the dedicated _Addons_ tab from the Blizzard _Interface_ menu (or by using the `/thaliz config` command)
@@ -18,7 +18,7 @@
 * Removed the message displayed in chat when enabling/disabling the resurrection messages feature
 * Standardized the wording about the messages send when rezing someone: these are now only called "messages" (not macros or announcements)
 
-# classic-0.3.0
+# 0.3.0
 * Fixed lua bug when not in raid/party
 * Fixed nil player names
 * Added target name to button (lets see if it works out)
