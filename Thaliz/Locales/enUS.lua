@@ -8,34 +8,36 @@ L["Redemption"] = "Redemption"
 L["Resurrection"] = "Resurrection"
 
 --  Default resurrection messages
+-- %s will be replaced by the resurrected player name
+-- %c will be replaced by the resurrected player class name
 L["Default Messages"] = {
 	-- UBRS
-	"(Ressing) THIS CANNOT BE!!! %s, deal with these insects!"         ,	-- Lord Victor Nefarius
+	"(Ressing) THIS CANNOT BE!!! %p, deal with these insects!"         ,	-- Lord Victor Nefarius
 	-- ZG
-	"(Ressing) %s! I'm watching you!"								   ,	-- Bloodlord Mandokir
-	"(Ressing) %s, fill me with your RAGE!"                            ,	-- High Priest Thekal
-	"(Ressing) Fleeing will do you no good, %s!"                       ,	-- Hakkar
+	"(Ressing) %p! I'm watching you!"								   ,	-- Bloodlord Mandokir
+	"(Ressing) %p, fill me with your RAGE!"                            ,	-- High Priest Thekal
+	"(Ressing) Fleeing will do you no good, %p!"                       ,	-- Hakkar
 	-- AQ20
-	"(Ressing) Master %c %s, continue the fight!"                      ,	-- General Rajaxx
+	"(Ressing) Master %c %p, continue the fight!"                      ,	-- General Rajaxx
 	-- MC
-	"(Ressing) Perhaps you'll need another lesson in pain, %s!"        ,	-- Majordomo Executus
-	"(Ressing) Too soon, %s - you have died too soon!"                 ,	-- Ragnaros
-	"(Ressing) You have failed me, %s! Justice shall be met, indeed!"  ,	-- Ragnaros
+	"(Ressing) Perhaps you'll need another lesson in pain, %p!"        ,	-- Majordomo Executus
+	"(Ressing) Too soon, %p - you have died too soon!"                 ,	-- Ragnaros
+	"(Ressing) You have failed me, %p! Justice shall be met, indeed!"  ,	-- Ragnaros
 	-- BWL
-	"(Ressing) Forgive me %s! Your death only adds to my failure!"     ,	-- Vaelastrasz the Corrupt
+	"(Ressing) Forgive me %p! Your death only adds to my failure!"     ,	-- Vaelastrasz the Corrupt
 	-- AQ40
-	"(Ressing) Let your death serve as an example, %s!"                ,	-- Prophet Skeram
-	"(Ressing) Only flesh and bone. %cs are such easy prey, %s..."     ,	-- Emperor Vek'lor
-	"(Ressing) Your friends will abandon you, %s."                     ,	-- C'Thun
+	"(Ressing) Let your death serve as an example, %p!"                ,	-- Prophet Skeram
+	"(Ressing) Only flesh and bone. %cs are such easy prey, %p..."     ,	-- Emperor Vek'lor
+	"(Ressing) Your friends will abandon you, %p."                     ,	-- C'Thun
 	-- Naxx
-	"(Ressing) Shhh, %s... it will all be over soon."                  ,	-- Anub'Rekhan
-	"(Ressing) Slay %s in the masters name!"                           ,	-- Grand Widow Faerlina
-	"(Ressing) Rise, %s! Rise and fight once more!"                    ,	-- Noth the Plaguebringer
-	"(Ressing) You should have stayed home, %s."                       ,	-- Instructor Razuvious
-	"(Ressing) Death is the only escape, %s!"                          ,	-- Gothik the Harvester
-	"(Ressing) The first res goes to %s! Anyone care to wager?"        ,	-- Lady Blaumeux (Four Horsemen)
-	"(Ressing) No more play, %s?"                                      ,	-- Patchwerk
-	"(Ressing) %s, you are too late... I... must... OBEY!"             ,	-- Thaddius
+	"(Ressing) Shhh, %p... it will all be over soon."                  ,	-- Anub'Rekhan
+	"(Ressing) Slay %p in the masters name!"                           ,	-- Grand Widow Faerlina
+	"(Ressing) Rise, %p! Rise and fight once more!"                    ,	-- Noth the Plaguebringer
+	"(Ressing) You should have stayed home, %p."                       ,	-- Instructor Razuvious
+	"(Ressing) Death is the only escape, %p!"                          ,	-- Gothik the Harvester
+	"(Ressing) The first res goes to %p! Anyone care to wager?"        ,	-- Lady Blaumeux (Four Horsemen)
+	"(Ressing) No more play, %p?"                                      ,	-- Patchwerk
+	"(Ressing) %p, you are too late... I... must... OBEY!"             ,	-- Thaddius
 }
 
 L["Resurrection incoming in 10 seconds!"] = "Resurrection incoming in 10 seconds!"
@@ -53,6 +55,7 @@ L["Messages"] = "Messages"
 L["Add a new message"] = "Add a new message"
 L["Once your message has been added, you can change its group and group value."] = "Once your message has been added, you can change its group and group value."
 L["Message"] = "Message"
+L["You can use %s and %c to inject into the message the resurrected player's name and class name."] = "You can use %s and %c to inject into the message the resurrected player's name and class name."
 L["Use it for"] = "Use it for"
 L["who/which is"] = "who/which is"
 L["Druid"] = "Druid"

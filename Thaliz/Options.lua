@@ -114,6 +114,7 @@ local function CreateMessageGroupOption(index)
 		args = {
 			message = {
 				name = L["Message"],
+				desc = L["You can use %s and %c to inject into the message the resurrected player's name and class name."],
 				type = "input",
 				order = 1,
 				width = "full",
