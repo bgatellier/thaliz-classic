@@ -93,8 +93,6 @@ function Thaliz:OnInitialize()
 
 	currentVersion = CalculateVersion( GetAddOnMetadata(_, "Version") )
 
-	self:Echo(string.format("version %s by %s.", GetAddOnMetadata(_, "Version"), GetAddOnMetadata(_, "Author")))
-
 	self:RegisterEvents()
 	self:RegisterOnUpdate()
 

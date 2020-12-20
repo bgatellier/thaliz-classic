@@ -287,7 +287,7 @@ local function GetOptions()
 					},
 					authors = {
 						type = "description",
-						name = string.format("\n" .. L["By %s"], GetAddOnMetadata(_, "Author")),
+						name = string.format("\n" .. L["Created by %s, with the contribution of %s"], GetAddOnMetadata(_, "Author"), GetAddOnMetadata(_, "X-Contributors")),
 						fontSize = "medium",
 						order = 3,
 					},
