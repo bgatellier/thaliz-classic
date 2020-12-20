@@ -184,7 +184,7 @@ function Thaliz:AnnounceResurrection(playername, unitid)
 
 	local guildname = GetGuildInfo(unitid)
 	local race = string.upper(UnitRace(unitid))
-	local classname = string.upper(UnitClassName(unitid))
+	local _, classFilename = UnitClass(unitid)
 	local charname = string.upper(playername)
 
 	if guildname then
@@ -234,7 +234,7 @@ function Thaliz:AnnounceResurrection(playername, unitid)
 				nmacro[ nidx ] = macro
 			end
 		elseif macro[2] == Thaliz.constant.MESSAGE_TARGET_CLASS then
-			if param == classname then
+			if param == classFilename then
 				cidx = cidx + 1
 				cmacro[ cidx ] = macro
 			end
@@ -294,10 +294,10 @@ function Thaliz:AnnounceResurrection(playername, unitid)
 	end
 
 	local message = validMessages[ math.random(validCount) ]
-	message = string.gsub(message, "%%c", UCFirst(classname))
-	message = string.gsub(message, "%%r", UCFirst(race))
+	message = string.gsub(message, "%%c", L[UCFirst(classFilename)])
+	message = string.gsub(message, "%%r", L[UCFirst(race)])
 	message = string.gsub(message, "%%g", guildname)
-	message = string.gsub(message, "%%s", playername)
+	message = string.gsub(message, "%%p", playername)
 
 	local targetChannel = self.db.profile.public.channel
 
@@ -382,7 +382,8 @@ function Thaliz:ScanRaid()
 		return
 	end
 
-	local classinfo = self:GetClassinfo(UnitClassName("player"))
+	local _, classFilename = UnitClass("player")
+	local classinfo = self:GetClassinfo(classFilename)
 	local spellname = classinfo[3]
 
 	local grouptype = "party"
@@ -394,7 +395,8 @@ function Thaliz:ScanRaid()
 	local warlocksAlive = false
 	for n=1, groupsize, 1 do
 		unitid = grouptype..n
-		if not UnitIsDead(unitid) and UnitIsConnected(unitid) and UnitIsVisible(unitid) and UnitClassName(unitid) == "WARLOCK" then
+		_, classFilename = UnitClass(unitid)
+		if not UnitIsDead(unitid) and UnitIsConnected(unitid) and UnitIsVisible(unitid) and classFilename == "WARLOCK" then
 			warlocksAlive = true
 			break
 		end
@@ -441,7 +443,8 @@ function Thaliz:ScanRaid()
 				UnitIsConnected(unitid) and
 				UnitIsVisible(unitid) and
 				(IsSpellInRange(spellname, unitid) == 1) then
-			classinfo = self:GetClassinfo(UnitClassName(unitid))
+			_, classFilename = UnitClass(unitid)
+			classinfo = self:GetClassinfo(classFilename)
 			targetprio = classinfo[2]
 			if targetname and targetname == playername then
 				targetprio = Thaliz.constant.PRIORITY_TO_CURRENT_TARGET
@@ -541,18 +544,18 @@ end
 
 function Thaliz:InitClassSpecificStuff()
 	local debug = (self.db.profile.debug.enabled and self.db.profile.debug.functionName == "InitClassSpecificStuff")
-	local className = UnitClassName("player")
+	local _, classFilename = UnitClass("player")
 
 	if debug then
-		if not className then className = "nil" end
-		echo(string.format("**DEBUG**: [InitClassSpecificStuff] classname=%s", className))
+		if not classFilename then classFilename = "nil" end
+		echo(string.format("**DEBUG**: [InitClassSpecificStuff] classname=%s", classFilename))
 	end
 
-	if (InNumericTable(className, { "DRUID", "PALADIN", "PRIEST", "SHAMAN" })) then
-		playerClassName = className
+	if (InNumericTable(classFilename, { "DRUID", "PALADIN", "PRIEST", "SHAMAN" })) then
+		playerClassName = classFilename
 
-		rezBtnPassive = Thaliz.constant["ICON_" .. className .. "_PASSIVE"]
-		rezBtnActive = Thaliz.constant["ICON_" .. className .. "_ACTIVE"]
+		rezBtnPassive = Thaliz.constant["ICON_" .. classFilename .. "_PASSIVE"]
+		rezBtnActive = Thaliz.constant["ICON_" .. classFilename .. "_ACTIVE"]
 	else
 		rezBtnPassive = Thaliz.constant.ICON_OTHER_PASSIVE
 		rezBtnActive = Thaliz.constant.ICON_OTHER_PASSIVE
@@ -695,12 +698,6 @@ function Thaliz:IsInParty()
 	end
 
 	return false
-end
-
-function UnitClassName(unitid)
-	local _, className = UnitClass(unitid)
-
-	return className
 end
 
 
