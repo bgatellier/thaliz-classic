@@ -21,7 +21,7 @@ L["Default Messages"] = {
 	"(Résurrection) Maître %c %p, continuez le combat !"									                    ,	-- Général Rajaxx
 	-- MC
 	"(Résurrection) Vous avez sans doute besoin que je vous inflige quelques douleurs supplémentaires, %p !"	,	-- Chambellan Executus
-	"(Résurrection) Top tôt, %p ! Tu es mort trop tôt !"									                    ,	-- Ragnaros
+	"(Résurrection) Trop tôt, %p ! Tu es mort trop tôt !"									                    ,	-- Ragnaros
 	"(Résurrection) Vous m'avez trahi, %p ! Justice sera faite, en vérité !"									,	-- Ragnaros
 	-- BWL
 	"(Résurrection) Pardonnez-moi, %p ! Votre mort ne fait qu'ajouter à mon échec !"						    ,	-- Vaelastrasz le Corrompu
