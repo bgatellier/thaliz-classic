@@ -1,4 +1,4 @@
-# classic-0.6.0 (2020-xx-xx)
+# classic-0.6.0 (2021-xx-xx)
 
 * The configuration panel and the CLI has been reworked:
   * The configuration panel is now available in the dedicated _Addons_ tab from the Blizzard _Interface_ menu (or by using the `/thaliz config` command)
